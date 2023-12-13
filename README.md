@@ -31,13 +31,14 @@ Once you have created a new environment, you can install this project for local
 development using the following commands:
 
 ```
->> pip install -e .'[dev]'
+>> pip install -e .'[dev,train]'
 >> pre-commit install
 >> conda install pandoc
 ```
 
 Notes:
 1) The single quotes around `'[dev]'` may not be required for your operating system.
+3) Look at `pyproject.toml` for other optional dependencies, e.g. you can do `pip install -e ."[dev,train,cuda]"` if you want to use CUDA.
 2) `pre-commit install` will initialize pre-commit for this local repository, so
    that a set of tests will be run prior to completing a local commit. For more
    information, see the Python Project Template documentation on 
@@ -69,21 +70,24 @@ az account set --subscription "<your subscription name>"
 az configure --defaults workspace=<aml workspace> group=<resource group> location=<location, e.g. westus3>
 ```
 
-### Uploading data
-
-Example:
-```sh
-az storage blob upload  --account-name <account> --container <container>> --file data/data.jsonl -n data/sweetpea/data.jsonl
-```
 
 ### Running jobs
 
 Prediction
 ```sh
-az ml job create -f azureml/eval.yml  --set display_name="Test prediction job" --web
+az ml job create -f azureml/eval.yml  --set display_name="Test prediction job" --set environment_variables.HF_TOKEN=<your huggingface token> --web
 ```
 
 Notes:
 - `--name` will set the mlflow run id
 - `--display_name` becomes the name in the experiment dashboard
 - `--web` argument will pop-up a browser window for tracking the job.
+- The `HF_TOKEN` is required for gated repos, which need authentication
+
+
+### Uploading data
+
+Example:
+```sh
+az storage blob upload  --account-name <account> --container <container>> --file data/data.jsonl -n data/sweetpea/data.jsonl
+ ```

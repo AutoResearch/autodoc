@@ -43,6 +43,7 @@ dev = [
     "ipython", # Also used in building notebooks into Sphinx
     "matplotlib", # Used in sample notebook intro_notebook.ipynb
     "ipykernel",
+    "hf_transfer",
 ]
 train = [
     "jsonlines",

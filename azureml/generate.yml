@@ -1,7 +1,7 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
 command: >
   python -m autora.doc.pipelines.main generate 
-  --model-path ${{inputs.model_dir}}/llama-2-7b-chat-hf
+  --model-path ${{inputs.model_path}}
   --output ./outputs/output.txt
   --sys-id ${{inputs.sys_id}}
   --instruc-id ${{inputs.instruc_id}}
@@ -11,9 +11,11 @@ command: >
   autora/doc/pipelines/main.py    
 code: ../src
 inputs:
-  model_dir:
-    type: uri_folder 
-    path: azureml://datastores/workspaceblobstore/paths/base_models    
+  # Currently models are loading faster directly from HuggingFace vs Azure Blob Storage
+  # model_dir:
+  #   type: uri_folder 
+  #   path: azureml://datastores/workspaceblobstore/paths/base_models    
+  model_path: meta-llama/Llama-2-7b-chat-hf
   temperature: 0.7
   top_p: 0.95
   top_k: 40
