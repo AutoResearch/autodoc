@@ -1,5 +1,6 @@
-import jsonlines
 from pathlib import Path
+
+import jsonlines
 
 from autora.doc.pipelines.main import eval, generate, evaluate_documentation
 from autora.doc.runtime.prompts import InstructionPrompts, SystemPrompts
@@ -15,7 +16,7 @@ def test_predict() -> None:
     for output in outputs:
         assert len(output[0]) > 0, "Expected non-empty output"
 
-def test_evaluation():
+def test_evaluation() -> None:
     # Test Case: Valid Scores in the range of 0 and 1
     data = Path(__file__).parent.joinpath("../data/data.jsonl").resolve()
     with jsonlines.open(data) as reader:
