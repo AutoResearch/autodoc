@@ -1,13 +1,14 @@
 import itertools
 import logging
-import nltk
+
 from timeit import default_timer as timer
 from typing import List
-from nltk.translate.bleu_score import corpus_bleu, SmoothingFunction
-from nltk.translate.meteor_score import single_meteor_score
 
+import nltk
 import torch
 import typer
+from nltk.translate.bleu_score import corpus_bleu, SmoothingFunction
+from nltk.translate.meteor_score import single_meteor_score
 
 from autora.doc.runtime.predict_hf import Predictor
 from autora.doc.runtime.prompts import INSTR, SYS, InstructionPrompts, SystemPrompts
@@ -20,7 +21,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 nltk.download('wordnet')
 
-def evaluate_documentation(predictions, references):
+def evaluate_documentation(predictions, references) -> None:
     # Tokenize predictions and references
     tokenized_predictions = [pred[0].split() if pred else [] for pred in predictions]
     tokenized_references = [[ref.split()] for ref in references]
