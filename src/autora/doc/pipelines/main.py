@@ -77,10 +77,6 @@ def eval(
         pred = Predictor(model_path)
         timer_start = timer()
         predictions = pred.predict(sys_prompt, instr_prompt, inputs, **param_dict)
-        print(predictions)
-        print("len of predictions ", len(predictions))
-        print("len of predictions index 0", len(predictions[0]))
-
         bleu, meteor = evaluate_documentation(predictions, labels)
         timer_end = timer()
         pred_time = timer_end - timer_start
