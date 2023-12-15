@@ -1,13 +1,13 @@
 import itertools
 import logging
-import nltk
 from timeit import default_timer as timer
-from typing import List
-from nltk.translate.bleu_score import corpus_bleu, SmoothingFunction
-from nltk.translate.meteor_score import single_meteor_score
+from typing import List, Tuple
 
+import nltk
 import torch
 import typer
+from nltk.translate.bleu_score import SmoothingFunction, corpus_bleu
+from nltk.translate.meteor_score import single_meteor_score
 
 from autora.doc.runtime.predict_hf import Predictor
 from autora.doc.runtime.prompts import INSTR, SYS, InstructionPrompts, SystemPrompts
@@ -18,25 +18,27 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(module)s.%(funcName)s(): %(message)s",
 )
 logger = logging.getLogger(__name__)
-nltk.download('wordnet')
+nltk.download("wordnet")
 
-def evaluate_documentation(predictions, references):
+
+def evaluate_documentation(predictions: List[List[str]], references: List[str]) -> Tuple[float, float]:
     # Tokenize predictions and references
     tokenized_predictions = [pred[0].split() if pred else [] for pred in predictions]
     tokenized_references = [[ref.split()] for ref in references]
 
     # Calculate BLEU score
-    bleu = corpus_bleu(tokenized_references, tokenized_predictions,
-                       smoothing_function=SmoothingFunction().method1)
+    bleu = corpus_bleu(
+        tokenized_references, tokenized_predictions, smoothing_function=SmoothingFunction().method1
+    )
 
     # Calculate METEOR scores
-    meteor_scores = [single_meteor_score(ref[0], tokenized_pred)
-                     for ref, tokenized_pred in zip(tokenized_references, tokenized_predictions)]
+    meteor_scores = [
+        single_meteor_score(ref[0], tokenized_pred)
+        for ref, tokenized_pred in zip(tokenized_references, tokenized_predictions)
+    ]
     meteor = sum(meteor_scores) / len(predictions) if predictions else 0
 
     return (bleu, meteor)
-
-
 
 
 @app.command(help="Evaluate model on a data file")
@@ -95,8 +97,8 @@ def eval(
         total_tokens = sum([len(token) for token in tokens])
         mlflow.log_metric("total_tokens", total_tokens)
         mlflow.log_metric("tokens/sec", total_tokens / pred_time)
-        mlflow.log_metric("bleu_score", round(bleu,5))
-        mlflow.log_metric("meteor_score", round(meteor,5))
+        mlflow.log_metric("bleu_score", round(bleu, 5))
+        mlflow.log_metric("meteor_score", round(meteor, 5))
         return predictions
 
 

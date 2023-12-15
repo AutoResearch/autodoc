@@ -1,7 +1,8 @@
-import jsonlines
 from pathlib import Path
 
-from autora.doc.pipelines.main import eval, generate, evaluate_documentation
+import jsonlines
+
+from autora.doc.pipelines.main import eval, evaluate_documentation, generate
 from autora.doc.runtime.prompts import InstructionPrompts, SystemPrompts
 
 # dummy HF model for testing
@@ -15,16 +16,18 @@ def test_predict() -> None:
     for output in outputs:
         assert len(output[0]) > 0, "Expected non-empty output"
 
-def test_evaluation():
+
+def test_evaluation() -> None:
     # Test Case: Valid Scores in the range of 0 and 1
     data = Path(__file__).parent.joinpath("../data/data.jsonl").resolve()
     with jsonlines.open(data) as reader:
-            items = [item for item in reader]
-            labels = [item["output"] for item in items]
-    
+        items = [item for item in reader]
+        labels = [item["output"] for item in items]
+
     bleu, meteor = evaluate_documentation(labels, labels)
     assert bleu >= 0 and bleu <= 1, "BLEU score should be between 0 and 1"
     assert meteor >= 0 and meteor <= 1, "METEOR score should be between 0 and 1"
+
 
 def test_generate() -> None:
     python_file = __file__
