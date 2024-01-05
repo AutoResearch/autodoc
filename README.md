@@ -11,8 +11,8 @@
 [![codecov](https://codecov.io/gh/AutoResearch/autodoc/branch/main/graph/badge.svg)](https://codecov.io/gh/AutoResearch/autodoc)
 <!-- [![Read the Docs](https://img.shields.io/readthedocs/autora-doc)](https://autora-doc.readthedocs.io/) -->
 
-This project was automatically generated using the LINCC-Frameworks 
-[python-project-template](https://github.com/lincc-frameworks/python-project-template). For more information about the project template see the 
+This project was automatically generated using the LINCC-Frameworks
+[python-project-template](https://github.com/lincc-frameworks/python-project-template). For more information about the project template see the
 [documentation](https://lincc-ppt.readthedocs.io/en/latest/).
 
 ## Dev Guide - Getting Started
@@ -41,7 +41,7 @@ Notes:
 3) Look at `pyproject.toml` for other optional dependencies, e.g. you can do `pip install -e ."[dev,train,cuda]"` if you want to use CUDA.
 2) `pre-commit install` will initialize pre-commit for this local repository, so
    that a set of tests will be run prior to completing a local commit. For more
-   information, see the Python Project Template documentation on 
+   information, see the Python Project Template documentation on
    [pre-commit](https://lincc-ppt.readthedocs.io/en/latest/practices/precommit.html)
 3) Install `pandoc` allows you to verify that automatic rendering of Jupyter notebooks
    into documentation for ReadTheDocs works as expected. For more information, see
@@ -49,7 +49,7 @@ Notes:
    [Sphinx and Python Notebooks](https://lincc-ppt.readthedocs.io/en/latest/practices/sphinx.html#python-notebooks)
 
 
-## Running AzureML pipelines 
+## Running AzureML pipelines
 
 This repo contains the evaluation and training pipelines for AutoDoc.
 

@@ -10,12 +10,12 @@ on:
 jobs:
   pre-commit-ci:
     runs-on: ubuntu-latest
-    env: 
+    env:
       SKIP: "check-lincc-frameworks-template-version,pytest-check,no-commit-to-branch,validate-pyproject,check-added-large-files,sphinx-build"
     steps:
     - uses: actions/checkout@v3
       with:
-        fetch-depth: 0 
+        fetch-depth: 0
     - name: Setup Dependencies
       uses: ./.github/actions/deps
       with:
