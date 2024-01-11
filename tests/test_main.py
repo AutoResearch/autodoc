@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from autora.doc.pipelines.main import eval, generate
+from autora.doc.pipelines.main import eval, generate, import_data
 from autora.doc.runtime.prompts import InstructionPrompts, SystemPrompts
 
 # dummy HF model for testing
@@ -25,3 +25,12 @@ def test_generate() -> None:
     assert output.exists(), f"Expected output file {output} to exist"
     with open(str(output), "r") as f:
         assert len(f.read()) > 0, f"Expected non-empty output file {output}"
+
+
+def test_import(tmp_path: Path) -> None:
+    data = tmp_path.joinpath("data.jsonl")
+    code = Path(__file__).parent.joinpath("../data/autora/code1.txt").resolve()
+    text = Path(__file__).parent.joinpath("../data/autora/text1.txt").resolve()
+    import_data(str(code), str(text), str(data))
+    new_lines = data.read_text().splitlines()
+    assert len(new_lines) == 1, "Expected one new line"
