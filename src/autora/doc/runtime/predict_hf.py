@@ -32,9 +32,9 @@ class Predictor:
         sys: str,
         instr: str,
         inputs: List[str],
-        temperature: float = 0.6,
+        temperature: float = 0.0,
         top_p: float = 0.95,
-        top_k: float = 40,
+        top_k: float = 1,
         max_length: float = 2048,
         num_ret_seq: float = 1,
     ) -> List[List[str]]:
@@ -45,10 +45,7 @@ class Predictor:
         prompts = [TEMP_LLAMA2.format(sys=sys, instr=instr, input=input) for input in inputs]
         sequences = self.pipeline(
             prompts,
-            do_sample=True,
-            temperature=temperature,
-            top_p=top_p,
-            top_k=int(top_k),
+            do_sample=False,
             num_return_sequences=int(num_ret_seq),
             eos_token_id=self.tokenizer.eos_token_id,
             max_length=int(max_length),

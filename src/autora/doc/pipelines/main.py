@@ -108,6 +108,18 @@ def import_model(model_name: str) -> None:
     pass
 
 
+@app.command()
+def import_data(code_file: str, text_file: str, output_file: str = "data.jsonl") -> None:
+    from pathlib import Path
+
+    import jsonlines
+
+    # alpaca jsonl format:
+    d = {"instruction": Path(code_file).read_text(), "output": Path(text_file).read_text()}
+    with jsonlines.open(output_file, "a") as file:
+        file.write(d)
+
+
 if __name__ == "__main__":
     logger.info(f"Torch version: {torch.__version__} , Cuda available: {torch.cuda.is_available()}")
 

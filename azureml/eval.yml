@@ -18,9 +18,9 @@ inputs:
   #   type: uri_folder
   #   path: azureml://datastores/workspaceblobstore/paths/base_models
   model_path: meta-llama/Llama-2-7b-chat-hf
-  temperature: 0.7
+  temperature: 0.01
   top_p: 0.95
-  top_k: 40
+  top_k: 1
   sys_id: SYS_1
   instruc_id: INSTR_SWEETP_1
 # using a curated environment doesn't work because we need additional packages

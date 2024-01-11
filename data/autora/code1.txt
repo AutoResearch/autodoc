@@ -1,0 +1,69 @@
+import numpy as np
+import pandas as pd
+import sympy as sp
+from autora.experiment_runner.synthetic.abstract.equation import equation_experiment
+from autora.experimentalist.random import random_pool
+from autora.state import StandardState, estimator_on_state, on_state
+from autora.theorist.bms import BMSRegressor
+from autora.variable import ValueType, Variable, VariableCollection
+
+####################################################################################
+## Define initial data
+####################################################################################
+
+#### Define variable data ####
+iv = Variable(name="x", value_range=(0, 2 * np.pi), allowed_values=np.linspace(0, 2 * np.pi, 30))
+dv = Variable(name="y", type=ValueType.REAL)
+variables = VariableCollection(independent_variables=[iv], dependent_variables=[dv])
+
+#### Define seed condition data ####
+conditions = random_pool(variables, num_samples=10, random_state=0)
+
+####################################################################################
+## Define experimentalist
+####################################################################################
+
+experimentalist = on_state(random_pool, output=["conditions"])
+
+####################################################################################
+## Define experiment runner
+####################################################################################
+
+sin_experiment = equation_experiment(
+    sp.simplify("sin(x)"), variables.independent_variables, variables.dependent_variables[0]
+)
+sin_runner = sin_experiment.experiment_runner
+
+experiment_runner = on_state(sin_runner, output=["experiment_data"])
+
+####################################################################################
+## Define theorist
+####################################################################################
+
+theorist = estimator_on_state(BMSRegressor(epochs=100))
+
+####################################################################################
+## Define state
+####################################################################################
+
+s = StandardState(
+    variables=variables, conditions=conditions, experiment_data=pd.DataFrame(columns=["x", "y"])
+)
+
+####################################################################################
+## Cycle through the state
+####################################################################################
+
+print("Pre-Defined State:")
+print(f"Number of datapoints collected: {len(s['experiment_data'])}")
+print(f"Derived models: {s['models']}")
+print("\n")
+
+for i in range(5):
+    s = experimentalist(s, num_samples=10, random_state=42)
+    s = experiment_runner(s, added_noise=1.0, random_state=42)
+    s = theorist(s)
+    print(f"\nCycle {i+1} Results:")
+    print(f"Number of datapoints collected: {len(s['experiment_data'])}")
+    print(f"Derived models: {s['models']}")
+    print("\n")

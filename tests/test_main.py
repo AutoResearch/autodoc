@@ -8,7 +8,7 @@ TEST_HF_MODEL = "hf-internal-testing/tiny-random-FalconForCausalLM"
 
 
 def test_predict() -> None:
-    data = Path(__file__).parent.joinpath("../data/data.jsonl").resolve()
+    data = Path(__file__).parent.joinpath("../data/sweetpea/data.jsonl").resolve()
     outputs = eval(str(data), TEST_HF_MODEL, SystemPrompts.SYS_1, InstructionPrompts.INSTR_SWEETP_1, [])
     assert len(outputs) == 3, "Expected 3 outputs"
     for output in outputs:
