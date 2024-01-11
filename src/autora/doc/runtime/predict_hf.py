@@ -32,7 +32,7 @@ class Predictor:
         sys: str,
         instr: str,
         inputs: List[str],
-        do_sample: bool = False,
+        do_sample: float = 0.0,
         temperature: float = 0.01,
         top_p: float = 0.95,
         top_k: float = 1,
