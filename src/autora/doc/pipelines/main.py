@@ -18,15 +18,17 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(module)s.%(funcName)s(): %(message)s",
 )
 logger = logging.getLogger(__name__)
-nltk.download("wordnet")
 
 
 def evaluate_documentation(predictions: List[List[str]], references: List[str]) -> Tuple[float, float]:
-    # Tokenize predictions and references
-    tokenized_predictions = [pred[0].split() if pred else [] for pred in predictions]
-    tokenized_references = [[ref.split()] for ref in references]
+    nltk.download("wordnet")
 
-    # Calculate BLEU score
+    # Tokenize references
+    tokenized_references = [[ref.split()] for ref in references]
+    tokenized_predictions = [pred[0].split() if pred else [] for pred in predictions]
+
+    # Calculate BLEU score with smoothing function
+    # SmoothingFunction().method1 is used to avoid zero scores for n-grams not found in the reference.
     bleu = corpus_bleu(
         tokenized_references, tokenized_predictions, smoothing_function=SmoothingFunction().method1
     )
@@ -80,6 +82,7 @@ def eval(
         timer_start = timer()
         predictions = pred.predict(sys_prompt, instr_prompt, inputs, **param_dict)
         bleu, meteor = evaluate_documentation(predictions, labels)
+
         timer_end = timer()
         pred_time = timer_end - timer_start
         mlflow.log_metric("prediction_time/doc", pred_time / (len(inputs)))

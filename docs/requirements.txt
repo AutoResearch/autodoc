@@ -7,4 +7,3 @@ jupytext
 jupyter
 matplotlib
 numpy
-nltk
