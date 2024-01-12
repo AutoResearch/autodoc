@@ -16,4 +16,4 @@ dependencies:
     - scipy
     - nltk
     # This works, while installing from pytorch and cuda from conda does not
-    - torch==2.0.1    
+    - torch==2.0.1

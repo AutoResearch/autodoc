@@ -13,9 +13,9 @@ runs:
         python-version: ${{inputs.python-version}}
     - name: Setup pip
       shell: sh
-      run: |        
+      run: |
         python3 -m ensurepip
         python3 -m pip install --upgrade pip
-    - name: Install project 
+    - name: Install project
       shell: sh
       run: pip install ".[dev,train]"

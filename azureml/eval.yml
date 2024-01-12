@@ -1,8 +1,8 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
 command: >
-  python -m autora.doc.pipelines.main eval 
+  python -m autora.doc.pipelines.main eval
   ${{inputs.data_dir}}/data.jsonl
-  --model-path ${{inputs.model_dir}}/llama-2-7b-chat-hf
+  --model-path ${{inputs.model_path}}
   --sys-id ${{inputs.sys_id}}
   --instruc-id ${{inputs.instruc_id}}
   --param temperature=${{inputs.temperature}}
@@ -11,11 +11,13 @@ command: >
 code: ../src
 inputs:
   data_dir:
-    type: uri_folder 
+    type: uri_folder
     path: azureml://datastores/workspaceblobstore/paths/data/sweetpea/
-  model_dir:
-    type: uri_folder 
-    path: azureml://datastores/workspaceblobstore/paths/base_models    
+  # Currently models are loading faster directly from HuggingFace vs Azure Blob Storage
+  # model_dir:
+  #   type: uri_folder
+  #   path: azureml://datastores/workspaceblobstore/paths/base_models
+  model_path: meta-llama/Llama-2-7b-chat-hf
   temperature: 0.7
   top_p: 0.95
   top_k: 40
