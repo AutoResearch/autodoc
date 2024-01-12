@@ -24,7 +24,9 @@ def evaluate_documentation(predictions: List[List[str]], references: List[str]) 
     nltk.download("wordnet")
 
     # Tokenize references
+    # To calculate corpus_bleu, we need the references to be in a list[list].
     tokenized_references = [[ref.split()] for ref in references]
+    # Currently there is only 1 prediction for 1 reference, need to avg in future
     tokenized_predictions = [pred[0].split() if pred else [] for pred in predictions]
 
     # Calculate BLEU score with smoothing function
@@ -34,6 +36,7 @@ def evaluate_documentation(predictions: List[List[str]], references: List[str]) 
     )
 
     # Calculate METEOR scores
+    # As we have list[list], we take ref[0] to calculate meteor score.
     meteor_scores = [
         single_meteor_score(ref[0], tokenized_pred)
         for ref, tokenized_pred in zip(tokenized_references, tokenized_predictions)
