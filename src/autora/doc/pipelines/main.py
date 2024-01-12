@@ -117,6 +117,7 @@ def import_data(code_file: str, text_file: str, output_file: str = "data.jsonl")
     # alpaca jsonl format:
     def read_text(file: str) -> str:
         return Path(file).read_text()
+
     d = {"instruction": read_text(code_file), "output": read_text(text_file)}
     with jsonlines.open(output_file, "a") as file:
         file.write(d)
