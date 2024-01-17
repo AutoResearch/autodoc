@@ -71,6 +71,12 @@ Using the same style, please generate a high-level one paragraph description for
 """
 
 
+AUTORA_VARS = (
+    "Generate a high level description of the variables used in the experiment based on the following code. "
+    "Do not include code or code-like syntax in your description."
+)
+
+
 class SystemPrompts(str, Enum):
     SYS_1 = "SYS_1"
 
