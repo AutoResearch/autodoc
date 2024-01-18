@@ -5,6 +5,7 @@ command: >
   --output ./outputs/output.txt
   --sys-id ${{inputs.sys_id}}
   --instruc-id ${{inputs.instruc_id}}
+  --param do_sample=${{inputs.do_sample}}
   --param temperature=${{inputs.temperature}}
   --param top_k=${{inputs.top_k}}
   --param top_p=${{inputs.top_p}}
@@ -17,6 +18,7 @@ inputs:
   #   path: azureml://datastores/workspaceblobstore/paths/base_models
   model_path: meta-llama/Llama-2-7b-chat-hf
   temperature: 0.7
+  do_sample: 0
   top_p: 0.95
   top_k: 40
   sys_id: SYS_1

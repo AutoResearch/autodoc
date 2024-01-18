@@ -1,0 +1,7 @@
+The following example demonstrates how to use AutoRA to automate the process of model discovery, experimental design, and data collection.
+
+The discovery problem is defined by a single independent variable $x \in [0, 2 \pi]$ and dependent variable $y$.
+The experiment amounts to a simple sine wave, $y = \sin(x)$, which is the model we are trying to discover.
+
+The discovery cycle iterates between the experimentalist, experiment runner, and theorist. Here, we us a "random" experimentalist, which samples novel experimental conditions for $x$ every cycle.
+The experiment runner then collects data for the corresponding $y$ values. Finally, the theorist uses a [Bayesian Machine Scientist](https://autoresearch.github.io/autora/user-guide/theorists/bms/) (BMS; Guimerà et al., in Science Advances) to identify a scientific model that explains the data.

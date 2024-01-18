@@ -32,20 +32,23 @@ class Predictor:
         sys: str,
         instr: str,
         inputs: List[str],
-        temperature: float = 0.6,
+        do_sample: float = 0.0,
+        temperature: float = 0.01,
         top_p: float = 0.95,
-        top_k: float = 40,
+        top_k: float = 1,
         max_length: float = 2048,
         num_ret_seq: float = 1,
     ) -> List[List[str]]:
+        # convert to bool in case it came in as a generate float param from the CLI
+        do_sample = bool(do_sample)
         logger.info(
-            f"Generating {len(inputs)} predictions. Temperature: {temperature}, top_p: {top_p}, top_k: {top_k}, "
-            f"max_length: {max_length}"
+            f"Generating {len(inputs)} predictions. do_sample: {do_sample}, temperature: {temperature}, top_p: {top_p},"
+            f" top_k: {top_k}, max_length: {max_length}"
         )
         prompts = [TEMP_LLAMA2.format(sys=sys, instr=instr, input=input) for input in inputs]
         sequences = self.pipeline(
             prompts,
-            do_sample=True,
+            do_sample=do_sample,
             temperature=temperature,
             top_p=top_p,
             top_k=int(top_k),
