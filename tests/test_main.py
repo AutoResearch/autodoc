@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from autora.doc.pipelines.main import eval, evaluate_documentation, generate, import_data
-from autora.doc.runtime.prompts import InstructionPrompts, SystemPrompts
-
 import jsonlines
 import pytest
+
+from autora.doc.pipelines.main import eval, evaluate_documentation, generate, import_data
+from autora.doc.runtime.prompts import InstructionPrompts, SystemPrompts
 
 # dummy HF model for testing
 TEST_HF_MODEL = "hf-internal-testing/tiny-random-FalconForCausalLM"
