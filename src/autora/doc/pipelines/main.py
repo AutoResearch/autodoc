@@ -24,22 +24,23 @@ def evaluate_documentation(predictions: List[List[str]], references: List[str]) 
     nltk.download("wordnet")
 
     # Tokenize references
-    # To calculate corpus_bleu, we need the references to be in a list[list].
-    tokenized_references = [[ref.split()] for ref in references]
+    tokenized_references = [ref.split() for ref in references]
     # Currently there is only 1 prediction for 1 reference, need to avg in future
     tokenized_predictions = [pred[0].split() if pred else [] for pred in predictions]
 
     # Calculate BLEU score with smoothing function
     # SmoothingFunction().method1 is used to avoid zero scores for n-grams not found in the reference.
     bleu = corpus_bleu(
-        tokenized_references, tokenized_predictions, smoothing_function=SmoothingFunction().method1
+        # Wrap each reference list in another list
+        [[tokenized_ref] for tokenized_ref in tokenized_references],
+        tokenized_predictions,
+        smoothing_function=SmoothingFunction().method1,
     )
 
     # Calculate METEOR scores
-    # As we have list[list], we take ref[0] to calculate meteor score.
     meteor_scores = [
-        single_meteor_score(ref[0], tokenized_pred)
-        for ref, tokenized_pred in zip(tokenized_references, tokenized_predictions)
+        single_meteor_score(tokenized_ref, tokenized_pred)
+        for tokenized_ref, tokenized_pred in zip(tokenized_references, tokenized_predictions)
     ]
     meteor = sum(meteor_scores) / len(predictions) if predictions else 0
 
