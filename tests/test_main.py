@@ -1,10 +1,10 @@
 from pathlib import Path
 
-import jsonlines
-import pytest
-
 from autora.doc.pipelines.main import eval, evaluate_documentation, generate, import_data
 from autora.doc.runtime.prompts import InstructionPrompts, SystemPrompts
+
+import jsonlines
+import pytest
 
 # dummy HF model for testing
 TEST_HF_MODEL = "hf-internal-testing/tiny-random-FalconForCausalLM"
@@ -20,7 +20,7 @@ def test_predict() -> None:
 
 def test_evaluation() -> None:
     # Test Case: Meteor and Bleu scores are close to 1
-    data = Path(__file__).parent.joinpath("../data/data.jsonl").resolve()
+    data = Path(__file__).parent.joinpath("../data/sweetpea/data.jsonl").resolve()
     with jsonlines.open(data) as reader:
         items = [item for item in reader]
         labels = [item["output"] for item in items]
