@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import textwrap
 from enum import Enum
 
 LLAMA2_INST_CLOSE = "[/INST]\n"
@@ -8,37 +9,50 @@ LLAMA2_INST_CLOSE = "[/INST]\n"
 class PromptBuilder:
     """
     Utilty class for building LLAMA2 prompts. Uses a stateful builder pattern.
+    See: https://ai.meta.com/llama/get-started/#prompting
     """
 
     def __init__(self, sys: str, instr: str):
         self.instr = instr
-        self.prompt_text = f"""<s>[INST] <<SYS>>
-{ sys }
-<</SYS>>"""
+        # Initialize the prompt with the system prompt
+        self.prompt_text = f"""
+                            <s>[INST] <<SYS>>
+                            { sys }
+                            <</SYS>>
+                            """
 
     def _add_input(self) -> PromptBuilder:
+        # Add the instruction (e.g. "Generate a one line descrip...")
+        # and a placeholder for the code
         self.prompt_text += f"""
-{ self.instr }
-----------{{code}}----------
-"""
+                            { self.instr }
+                            ----------{{code}}----------
+                            """
         return self
 
     def add_example(self, code: str, doc: str) -> PromptBuilder:
+        # This adds an example in the form of instruction+code+doc
         self._add_input()
         self.prompt_text = self.prompt_text.format(code=code)
         self.prompt_text += f"""
-[/INST]
-{doc}
-</s>
-<s>
-[INST]
-"""
+                            [/INST]
+                            {doc}
+                            </s>
+                            <s>
+                            [INST]
+                            """
         return self
 
     def build(self) -> str:
+        # Add a instruction+code placeholder and close the instruction
         self._add_input()
+        self.prompt_text = PromptBuilder._trim_leading_ws(self.prompt_text)
         self.prompt_text += LLAMA2_INST_CLOSE
         return self.prompt_text
+
+    @staticmethod
+    def _trim_leading_ws(s: str) -> str:
+        return "\n".join([line.lstrip() for line in s.splitlines()])
 
 
 SYS_1 = """You are a technical documentation writer. You always write clear, concise, and accurate documentation for
