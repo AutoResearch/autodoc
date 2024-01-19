@@ -72,6 +72,9 @@ def eval(
         logger.info(f"running predict with {data_file}")
         logger.info(f"model path: {model_path}")
         mlflow.log_params(param_dict)
+        mlflow.log_param("prompt_id", prompt_id)
+        mlflow.log_param("model_path", model_path)
+        mlflow.log_param("data_file", data_file)
 
         with jsonlines.open(data_file) as reader:
             items = [item for item in reader]
