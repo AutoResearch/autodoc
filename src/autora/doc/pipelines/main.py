@@ -1,10 +1,13 @@
 import itertools
 import logging
 from timeit import default_timer as timer
-from typing import List
+from typing import List, Tuple
 
+import nltk
 import torch
 import typer
+from nltk.translate.bleu_score import SmoothingFunction, corpus_bleu
+from nltk.translate.meteor_score import single_meteor_score
 
 from autora.doc.runtime.predict_hf import Predictor
 from autora.doc.runtime.prompts import PROMPTS, PromptIds
@@ -15,6 +18,33 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(module)s.%(funcName)s(): %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+
+def evaluate_documentation(predictions: List[List[str]], references: List[str]) -> Tuple[float, float]:
+    nltk.download("wordnet")
+
+    # Tokenize references
+    tokenized_references = [ref.split() for ref in references]
+    # Currently there is only 1 prediction for 1 reference, need to avg in future
+    tokenized_predictions = [pred[0].split() if pred else [] for pred in predictions]
+
+    # Calculate BLEU score with smoothing function
+    # SmoothingFunction().method1 is used to avoid zero scores for n-grams not found in the reference.
+    bleu = corpus_bleu(
+        # Wrap each reference list in another list
+        [[tokenized_ref] for tokenized_ref in tokenized_references],
+        tokenized_predictions,
+        smoothing_function=SmoothingFunction().method1,
+    )
+
+    # Calculate METEOR scores
+    meteor_scores = [
+        single_meteor_score(tokenized_ref, tokenized_pred)
+        for tokenized_ref, tokenized_pred in zip(tokenized_references, tokenized_predictions)
+    ]
+    meteor = sum(meteor_scores) / len(predictions) if predictions else 0
+
+    return (bleu, meteor)
 
 
 @app.command(help="Evaluate model on a data file")
@@ -52,6 +82,7 @@ def eval(
         timer_start = timer()
         predictions = pred.predict(prompt, inputs, **param_dict)
         timer_end = timer()
+        bleu, meteor = evaluate_documentation(predictions, labels)
         pred_time = timer_end - timer_start
         mlflow.log_metric("prediction_time/doc", pred_time / (len(inputs)))
         for i in range(len(inputs)):
@@ -59,6 +90,8 @@ def eval(
             mlflow.log_text(inputs[i], f"input_{i}.py")
             for j in range(len(predictions[i])):
                 mlflow.log_text(predictions[i][j], f"prediction_{i}_{j}.txt")
+        mlflow.log_text("bleu_score is ", str(bleu))
+        mlflow.log_text("meteor_score is ", str(meteor))
 
         # flatten predictions for counting tokens
         predictions_flat = list(itertools.chain.from_iterable(predictions))
@@ -66,6 +99,8 @@ def eval(
         total_tokens = sum([len(token) for token in tokens])
         mlflow.log_metric("total_tokens", total_tokens)
         mlflow.log_metric("tokens/sec", total_tokens / pred_time)
+        mlflow.log_metric("bleu_score", round(bleu, 5))
+        mlflow.log_metric("meteor_score", round(meteor, 5))
         return predictions
 
 
