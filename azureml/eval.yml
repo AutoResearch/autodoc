@@ -3,8 +3,7 @@ command: >
   python -m autora.doc.pipelines.main eval
   ${{inputs.data_dir}}/data.jsonl
   --model-path ${{inputs.model_path}}
-  --sys-id ${{inputs.sys_id}}
-  --instruc-id ${{inputs.instruc_id}}
+  --prompt-id ${{inputs.prompt_id}}
   --param do_sample=${{inputs.do_sample}}
   --param temperature=${{inputs.temperature}}
   --param top_k=${{inputs.top_k}}
@@ -23,8 +22,7 @@ inputs:
   do_sample: 0
   top_p: 0.95
   top_k: 1
-  sys_id: SYS_1
-  instruc_id: INSTR_SWEETP_1
+  prompt_id: SWEETP_1
 # using a curated environment doesn't work because we need additional packages
 environment: # azureml://registries/azureml/environments/acpt-pytorch-2.0-cuda11.7/versions/21
   image: mcr.microsoft.com/azureml/curated/acpt-pytorch-2.0-cuda11.7:21
@@ -37,6 +35,6 @@ environment: # azureml://registries/azureml/environments/acpt-pytorch-2.0-cuda11
   # image: nvcr.io/nvidia/pytorch:23.10-py3
   conda_file: conda.yml
 display_name: autodoc_prediction
-compute: azureml:t4cluster
+compute: azureml:v100cluster
 experiment_name: evaluation
 description: |

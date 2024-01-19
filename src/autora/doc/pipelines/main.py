@@ -7,7 +7,7 @@ import torch
 import typer
 
 from autora.doc.runtime.predict_hf import Predictor
-from autora.doc.runtime.prompts import INSTR, SYS, InstructionPrompts, SystemPrompts
+from autora.doc.runtime.prompts import PROMPTS, PromptIds
 
 app = typer.Typer()
 logging.basicConfig(
@@ -21,10 +21,7 @@ logger = logging.getLogger(__name__)
 def eval(
     data_file: str = typer.Argument(..., help="JSONL Data file to evaluate on"),
     model_path: str = typer.Option("meta-llama/Llama-2-7b-chat-hf", help="Path to HF model"),
-    sys_id: SystemPrompts = typer.Option(SystemPrompts.SYS_1, help="System prompt ID"),
-    instruc_id: InstructionPrompts = typer.Option(
-        InstructionPrompts.INSTR_SWEETP_1, help="Instruction prompt ID"
-    ),
+    prompt_id: PromptIds = typer.Option(PromptIds.SWEETP_1, help="Instruction prompt ID"),
     param: List[str] = typer.Option(
         [], help="Additional float parameters to pass to the model as name=float pairs"
     ),
@@ -37,8 +34,7 @@ def eval(
     param_dict = {pair[0]: float(pair[1]) for pair in [pair.split("=") for pair in param]}
     run = mlflow.active_run()
 
-    sys_prompt = SYS[sys_id]
-    instr_prompt = INSTR[instruc_id]
+    prompt = PROMPTS[prompt_id]
     if run is None:
         run = mlflow.start_run()
     with run:
@@ -54,7 +50,7 @@ def eval(
 
         pred = Predictor(model_path)
         timer_start = timer()
-        predictions = pred.predict(sys_prompt, instr_prompt, inputs, **param_dict)
+        predictions = pred.predict(prompt, inputs, **param_dict)
         timer_end = timer()
         pred_time = timer_end - timer_start
         mlflow.log_metric("prediction_time/doc", pred_time / (len(inputs)))
@@ -78,10 +74,7 @@ def generate(
     python_file: str = typer.Argument(..., help="Python file to generate documentation for"),
     model_path: str = typer.Option("meta-llama/Llama-2-7b-chat-hf", help="Path to HF model"),
     output: str = typer.Option("output.txt", help="Output file"),
-    sys_id: SystemPrompts = typer.Option(SystemPrompts.SYS_1, help="System prompt ID"),
-    instruc_id: InstructionPrompts = typer.Option(
-        InstructionPrompts.INSTR_SWEETP_1, help="Instruction prompt ID"
-    ),
+    prompt_id: PromptIds = typer.Option(PromptIds.SWEETP_1, help="Instruction prompt ID"),
     param: List[str] = typer.Option(
         [], help="Additional float parameters to pass to the model as name=float pairs"
     ),
@@ -92,11 +85,10 @@ def generate(
     """
     with open(python_file, "r") as f:
         input = f.read()
-    sys_prompt = SYS[sys_id]
-    instr_prompt = INSTR[instruc_id]
+    prompt = PROMPTS[prompt_id]
     pred = Predictor(model_path)
     # grab first result since we only passed one input
-    predictions = pred.predict(sys_prompt, instr_prompt, [input], **param_dict)[0]
+    predictions = pred.predict(prompt, [input], **param_dict)[0]
     assert len(predictions) == 1, f"Expected only one output, got {len(predictions)}"
     logger.info(f"Writing output to {output}")
     with open(output, "w") as f:

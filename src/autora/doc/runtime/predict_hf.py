@@ -5,7 +5,7 @@ import torch
 import transformers
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from autora.doc.runtime.prompts import LLAMA2_INST_CLOSE, TEMP_LLAMA2
+from autora.doc.runtime.prompts import LLAMA2_INST_CLOSE
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +29,7 @@ class Predictor:
 
     def predict(
         self,
-        sys: str,
-        instr: str,
+        prompt_template: str,
         inputs: List[str],
         do_sample: float = 0.0,
         temperature: float = 0.01,
@@ -45,7 +44,7 @@ class Predictor:
             f"Generating {len(inputs)} predictions. do_sample: {do_sample}, temperature: {temperature}, top_p: {top_p},"
             f" top_k: {top_k}, max_length: {max_length}"
         )
-        prompts = [TEMP_LLAMA2.format(sys=sys, instr=instr, input=input) for input in inputs]
+        prompts = [prompt_template.format(code=input) for input in inputs]
         sequences = self.pipeline(
             prompts,
             do_sample=do_sample,
@@ -65,7 +64,7 @@ class Predictor:
 
     @staticmethod
     def trim_prompt(output: str) -> str:
-        marker = output.find(LLAMA2_INST_CLOSE)
+        marker = output.rfind(LLAMA2_INST_CLOSE)
         if marker == -1:
             logger.warning(f"Could not find end of prompt marker '{LLAMA2_INST_CLOSE}' in '{output}'")
             return output

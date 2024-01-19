@@ -1,17 +1,44 @@
+from __future__ import annotations
+
 from enum import Enum
 
 LLAMA2_INST_CLOSE = "[/INST]\n"
 
-# Standard Llama2 template
-TEMP_LLAMA2 = """
-[INST]<<SYS>>
-{sys}
 
-{instr}
+class PromptBuilder:
+    """
+    Utilty class for building LLAMA2 prompts. Uses a stateful builder pattern.
+    """
 
-{input}
-[/INST]
+    def __init__(self, sys: str, instr: str):
+        self.instr = instr
+        self.prompt_text = f"""<s>[INST] <<SYS>>
+{ sys }
+<</SYS>>"""
+
+    def _add_input(self) -> PromptBuilder:
+        self.prompt_text += f"""
+{ self.instr }
+----------{{code}}----------
 """
+        return self
+
+    def add_example(self, code: str, doc: str) -> PromptBuilder:
+        self._add_input()
+        self.prompt_text = self.prompt_text.format(code=code)
+        self.prompt_text += f"""
+[/INST]
+{doc}
+</s>
+<s>
+[INST]
+"""
+        return self
+
+    def build(self) -> str:
+        self._add_input()
+        self.prompt_text += LLAMA2_INST_CLOSE
+        return self.prompt_text
 
 
 SYS_1 = """You are a technical documentation writer. You always write clear, concise, and accurate documentation for
@@ -20,74 +47,45 @@ details about specific python functions, packages, or libraries are not necessar
 scientists.
 """
 
-INSTR_SWEETP_1 = """Please generate high-level two paragraph documentation for the following experiment. The first
-paragraph should explain the purpose and the second one the procedure, but don't use the word 'Paragraph'"""
-
-# The following prompt uses an example (code, doc) to specify the desired behavior
-EX_CODE = """
-from sweetpea import *
-
-color = Factor('color', ['red', 'green', 'blue', 'yellow'])
-word = Factor('word', ['red', 'green', 'blue', 'yellow'])
-
-def is_congruent(word, color):
-    return (word == color)
-
-def is_not_congruent(word, color):
-    return not is_congruent(word, color)
-
-congruent = DerivedLevel('congruent', WithinTrial(is_congruent, [word, color]))
-incongruent = DerivedLevel('incongruent', WithinTrial(is_not_congruent, [word, color]))
-
-congruency = Factor('congruency', [congruent, incongruent])
-
-constraints = [MinimumTrials(48)]
-design = [word, color, congruency]
-crossing = [word, congruency]
-
-block = CrossBlock(design, crossing, constraints)
-
-experiment = synthesize_trials(block, 1)
-
-save_experiments_csv(block, experiment, 'code_1_sequences/seq')
+SYS_GUIDES = """You are a technical documentation writer. You always write clear, concise, and accurate documentation
+for scientific experiments. Your documentation focuses on the experiment's procedure. Therefore, details about specific
+python functions, packages, or libraries are not necessary. Your readers are experimental scientists. Use the following
+guidelines for writing your descriptions:
+- Do not write greetings or preambles
+- Use the Variable 'name' attribute and not the python variable names
+- Use LaTeX for math expressions
+- Do not include code or code-like syntax and do not use python function or class names
 """
 
-EX_DOC = """There are two regular factors: color and word. The color factor consists of four levels: "red", "green",
-"blue", and "yellow". The word factor also consists of the four levels: "red", "green", "blue", and "yellow".
-There is another derived factor referred to as congruency. The congruency factor depends on the regular factors word
-and color and has two levels: "congruent" and "incongruent". A trial is considered "congruent" if the word matches
-the color, otherwise, it is considered "incongruent". We counterbalanced the word factor with the congruency factor.
-All experiment sequences contained at least 48 trials."""
-
-INSTR_SWEETP_EXAMPLE = f"""Consider the following experiment code:
----
-{EX_CODE}
----
-Here's a a good English description:
----
-{EX_DOC}
----
-Using the same style, please generate a high-level one paragraph description for the following experiment code:
-"""
-
-
-AUTORA_VARS = (
-    "Generate a high level description of the variables used in the experiment based on the following code. "
-    "Do not include code or code-like syntax in your description."
+INSTR_SWEETP_1 = (
+    """Please generate high-level one or two paragraph documentation for the following experiment."""
 )
 
 
-class SystemPrompts(str, Enum):
-    SYS_1 = "SYS_1"
+INSTR_AUTORA_VARS = """Generate a one line description of the dependent and independent variables used in the following
+python code: """
+
+CODE_AUTORA_VARS1 = """
+iv1 = Variable(name="a", value_range=(0, 2 * np.pi), allowed_values=np.linspace(0, 2 * np.pi, 30))
+iv2 = Variable(name="b", value_range=(0, 1), allowed_values=np.linspace(0, 1, 30))
+dv = Variable(name="z", type=ValueType.REAL)
+variables = VariableCollection(independent_variables=[iv1, iv2], dependent_variables=[dv])
+"""
+
+DOC_AUTORA_VARS1 = """The problem is defined by two independent variables $a \in [0, 2 \pi]$, $b in [0,1] and a
+dependent variable $z$."""
 
 
-class InstructionPrompts(str, Enum):
-    INSTR_SWEETP_1 = "INSTR_SWEETP_1"
-    INSTR_SWEETP_EXAMPLE = "INSTR_SWEETP_EXAMPLE"
+class PromptIds(str, Enum):
+    SWEETP_1 = "INSTR_SWEETP_1"
+    AUTORA_VARS_ZEROSHOT = "INSTR_VARS_ZEROSHOT"
+    AUTORA_VARS_ONESHOT = "INSTR_VARS_ONESHOT"
 
 
-SYS = {SystemPrompts.SYS_1: SYS_1}
-INSTR = {
-    InstructionPrompts.INSTR_SWEETP_1: INSTR_SWEETP_1,
-    InstructionPrompts.INSTR_SWEETP_EXAMPLE: INSTR_SWEETP_EXAMPLE,
+PROMPTS = {
+    PromptIds.SWEETP_1: PromptBuilder(SYS_1, INSTR_SWEETP_1).build(),
+    PromptIds.AUTORA_VARS_ZEROSHOT: PromptBuilder(SYS_GUIDES, INSTR_AUTORA_VARS).build(),
+    PromptIds.AUTORA_VARS_ONESHOT: PromptBuilder(SYS_GUIDES, INSTR_AUTORA_VARS)
+    .add_example(CODE_AUTORA_VARS1, DOC_AUTORA_VARS1)
+    .build(),
 }

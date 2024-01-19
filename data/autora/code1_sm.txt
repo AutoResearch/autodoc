@@ -1,0 +1,34 @@
+iv = Variable(name="x", value_range=(0, 2 * np.pi), allowed_values=np.linspace(0, 2 * np.pi, 30))
+dv = Variable(name="y", type=ValueType.REAL)
+variables = VariableCollection(independent_variables=[iv], dependent_variables=[dv])
+
+conditions = random_pool(variables, num_samples=10, random_state=0)
+
+experimentalist = on_state(random_pool, output=["conditions"])
+
+sin_experiment = equation_experiment(
+    sp.simplify("sin(x)"), variables.independent_variables, variables.dependent_variables[0]
+)
+sin_runner = sin_experiment.experiment_runner
+
+experiment_runner = on_state(sin_runner, output=["experiment_data"])
+
+theorist = estimator_on_state(BMSRegressor(epochs=100))
+
+s = StandardState(
+    variables=variables, conditions=conditions, experiment_data=pd.DataFrame(columns=["x", "y"])
+)
+
+print("Pre-Defined State:")
+print(f"Number of datapoints collected: {len(s['experiment_data'])}")
+print(f"Derived models: {s['models']}")
+print("\n")
+
+for i in range(5):
+    s = experimentalist(s, num_samples=10, random_state=42)
+    s = experiment_runner(s, added_noise=1.0, random_state=42)
+    s = theorist(s)
+    print(f"\nCycle {i+1} Results:")
+    print(f"Number of datapoints collected: {len(s['experiment_data'])}")
+    print(f"Derived models: {s['models']}")
+    print("\n")

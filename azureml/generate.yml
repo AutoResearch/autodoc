@@ -3,9 +3,8 @@ command: >
   python -m autora.doc.pipelines.main generate
   --model-path ${{inputs.model_path}}
   --output ./outputs/output.txt
-  --sys-id ${{inputs.sys_id}}
-  --instruc-id ${{inputs.instruc_id}}
   --param do_sample=${{inputs.do_sample}}
+  --prompt-id ${{inputs.prompt_id}}
   --param temperature=${{inputs.temperature}}
   --param top_k=${{inputs.top_k}}
   --param top_p=${{inputs.top_p}}
@@ -21,12 +20,11 @@ inputs:
   do_sample: 0
   top_p: 0.95
   top_k: 40
-  sys_id: SYS_1
-  instruc_id: INSTR_SWEETP_1
+  prompt_id: SWEETP_1
 environment:
   image: mcr.microsoft.com/azureml/curated/acpt-pytorch-2.0-cuda11.7:21
   conda_file: conda.yml
 display_name: autodoc_prediction
-compute: azureml:t4cluster
+compute: azureml:v100cluster
 experiment_name: prediction
 description: |
