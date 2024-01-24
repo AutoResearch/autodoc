@@ -1,7 +1,7 @@
 import itertools
 import logging
 from timeit import default_timer as timer
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import nltk
 import torch
@@ -20,13 +20,13 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def evaluate_documentation(predictions: List[List[str]], references: List[str]) -> Tuple[float, float]:
+def evaluate_documentation(predictions: List[str], references: List[str]) -> Tuple[float, float]:
     nltk.download("wordnet")
 
     # Tokenize references
     tokenized_references = [ref.split() for ref in references]
     # Currently there is only 1 prediction for 1 reference, need to avg in future
-    tokenized_predictions = [pred[0].split() if pred else [] for pred in predictions]
+    tokenized_predictions = [pred.split() if pred else [] for pred in predictions]
 
     # Calculate BLEU score with smoothing function
     # SmoothingFunction().method1 is used to avoid zero scores for n-grams not found in the reference.
@@ -55,16 +55,13 @@ def eval(
     param: List[str] = typer.Option(
         [], help="Additional float parameters to pass to the model as name=float pairs"
     ),
-) -> List[List[str]]:
-    import jsonlines
+) -> Tuple[List[str], float, float]:
     import mlflow
 
     mlflow.autolog()
-
-    param_dict = {pair[0]: float(pair[1]) for pair in [pair.split("=") for pair in param]}
     run = mlflow.active_run()
+    param_dict = {pair[0]: float(pair[1]) for pair in [pair.split("=") for pair in param]}
 
-    prompt = PROMPTS[prompt_id]
     if run is None:
         run = mlflow.start_run()
     with run:
@@ -75,36 +72,51 @@ def eval(
         mlflow.log_param("prompt_id", prompt_id)
         mlflow.log_param("model_path", model_path)
         mlflow.log_param("data_file", data_file)
+    prompt = PROMPTS[prompt_id]
+    pred = Predictor(model_path)
+    return eval_prompt(data_file, pred, prompt, param_dict)
 
-        with jsonlines.open(data_file) as reader:
-            items = [item for item in reader]
-            inputs = [item["instruction"] for item in items]
-            labels = [item["output"] for item in items]
 
-        pred = Predictor(model_path)
-        timer_start = timer()
-        predictions = pred.predict(prompt, inputs, **param_dict)
-        timer_end = timer()
-        bleu, meteor = evaluate_documentation(predictions, labels)
-        pred_time = timer_end - timer_start
-        mlflow.log_metric("prediction_time/doc", pred_time / (len(inputs)))
-        for i in range(len(inputs)):
-            mlflow.log_text(labels[i], f"label_{i}.txt")
-            mlflow.log_text(inputs[i], f"input_{i}.py")
-            for j in range(len(predictions[i])):
-                mlflow.log_text(predictions[i][j], f"prediction_{i}_{j}.txt")
-        mlflow.log_text("bleu_score is ", str(bleu))
-        mlflow.log_text("meteor_score is ", str(meteor))
+def load_data(data_file: str) -> Tuple[List[str], List[str]]:
+    import jsonlines
 
-        # flatten predictions for counting tokens
-        predictions_flat = list(itertools.chain.from_iterable(predictions))
-        tokens = pred.tokenize(predictions_flat)["input_ids"]
-        total_tokens = sum([len(token) for token in tokens])
-        mlflow.log_metric("total_tokens", total_tokens)
-        mlflow.log_metric("tokens/sec", total_tokens / pred_time)
-        mlflow.log_metric("bleu_score", round(bleu, 5))
-        mlflow.log_metric("meteor_score", round(meteor, 5))
-        return predictions
+    with jsonlines.open(data_file) as reader:
+        items = [item for item in reader]
+        inputs = [f"{item['instruction']}" for item in items]
+        labels = [item["output"] for item in items]
+        return inputs, labels
+
+
+def eval_prompt(
+    data_file: str, pred: Predictor, prompt: str, param_dict: Dict[str, float]
+) -> Tuple[List[str], float, float]:
+    import mlflow
+
+    inputs, labels = load_data(data_file)
+
+    timer_start = timer()
+    predictions = pred.predict(prompt, inputs, **param_dict)
+    timer_end = timer()
+    bleu, meteor = evaluate_documentation(predictions, labels)
+    pred_time = timer_end - timer_start
+    mlflow.log_metric("prediction_time/doc", pred_time / (len(inputs)))
+    for i in range(len(inputs)):
+        mlflow.log_text(labels[i], f"label_{i}.txt")
+        mlflow.log_text(inputs[i], f"input_{i}.py")
+        for j in range(len(predictions[i])):
+            mlflow.log_text(predictions[i][j], f"prediction_{i}_{j}.txt")
+    mlflow.log_text("bleu_score is ", str(bleu))
+    mlflow.log_text("meteor_score is ", str(meteor))
+
+    # flatten predictions for counting tokens
+    predictions_flat = list(itertools.chain.from_iterable(predictions))
+    tokens = pred.tokenize(predictions_flat)["input_ids"]
+    total_tokens = sum([len(token) for token in tokens])
+    mlflow.log_metric("total_tokens", total_tokens)
+    mlflow.log_metric("tokens/sec", total_tokens / pred_time)
+    mlflow.log_metric("bleu_score", round(bleu, 5))
+    mlflow.log_metric("meteor_score", round(meteor, 5))
+    return predictions, bleu, meteor
 
 
 @app.command()
@@ -126,7 +138,7 @@ def generate(
     prompt = PROMPTS[prompt_id]
     pred = Predictor(model_path)
     # grab first result since we only passed one input
-    predictions = pred.predict(prompt, [input], **param_dict)[0]
+    predictions = pred.predict(prompt, [input], **param_dict)
     assert len(predictions) == 1, f"Expected only one output, got {len(predictions)}"
     logger.info(f"Writing output to {output}")
     with open(output, "w") as f:

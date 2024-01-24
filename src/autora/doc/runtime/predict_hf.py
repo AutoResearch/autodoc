@@ -1,13 +1,23 @@
 import logging
-from typing import Dict, List
+from typing import Dict, Iterable, List
 
 import torch
 import transformers
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from autora.doc.runtime.prompts import LLAMA2_INST_CLOSE
+from autora.doc.runtime.prompts import CODE_PLACEHOLDER, LLAMA2_INST_CLOSE
 
 logger = logging.getLogger(__name__)
+
+
+def preprocess_code(code: str) -> str:
+    lines: Iterable[str] = code.splitlines()
+    skip_starts = {"import", "from", "#"}
+    lines = filter(
+        lambda line: not (any([line.strip().startswith(skip) for skip in skip_starts]) or line.strip() == ""),
+        lines,
+    )
+    return "\n".join(lines)
 
 
 class Predictor:
@@ -35,16 +45,18 @@ class Predictor:
         temperature: float = 0.01,
         top_p: float = 0.95,
         top_k: float = 1,
-        max_length: float = 2048,
+        max_new_tokens: float = 2048,
         num_ret_seq: float = 1,
-    ) -> List[List[str]]:
+    ) -> List[str]:
         # convert to bool in case it came in as a generate float param from the CLI
         do_sample = bool(do_sample)
         logger.info(
             f"Generating {len(inputs)} predictions. do_sample: {do_sample}, temperature: {temperature}, top_p: {top_p},"
-            f" top_k: {top_k}, max_length: {max_length}"
+            f" top_k: {top_k}, max_new_tokens: {max_new_tokens}"
         )
-        prompts = [prompt_template.format(code=input) for input in inputs]
+        prompts = [
+            prompt_template.replace(CODE_PLACEHOLDER, preprocess_code(input).strip("\n")) for input in inputs
+        ]
         sequences = self.pipeline(
             prompts,
             do_sample=do_sample,
@@ -53,12 +65,10 @@ class Predictor:
             top_k=int(top_k),
             num_return_sequences=int(num_ret_seq),
             eos_token_id=self.tokenizer.eos_token_id,
-            max_length=int(max_length),
+            max_new_tokens=int(max_new_tokens),
         )
 
-        results = [
-            [Predictor.trim_prompt(seq["generated_text"]) for seq in sequence] for sequence in sequences
-        ]
+        results = [Predictor.trim_prompt(seq["generated_text"]) for sequence in sequences for seq in sequence]
         logger.info(f"Generated {len(results)} results")
         return results
 

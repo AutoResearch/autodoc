@@ -12,10 +12,10 @@ TEST_HF_MODEL = "hf-internal-testing/tiny-random-FalconForCausalLM"
 
 def test_predict() -> None:
     data = Path(__file__).parent.joinpath("../data/sweetpea/data.jsonl").resolve()
-    outputs = eval(str(data), TEST_HF_MODEL, PromptIds.SWEETP_1, [])
+    outputs, _, _ = eval(str(data), TEST_HF_MODEL, PromptIds.SWEETP_1, [])
     assert len(outputs) == 3, "Expected 3 outputs"
     for output in outputs:
-        assert len(output[0]) > 0, "Expected non-empty output"
+        assert len(output) > 0, "Expected non-empty output"
 
 
 def test_evaluation() -> None:
@@ -24,7 +24,7 @@ def test_evaluation() -> None:
     with jsonlines.open(data) as reader:
         items = [item for item in reader]
         labels = [item["output"] for item in items]
-        predictions = [[item["output"]] for item in items]
+        predictions = [item["output"] for item in items]
 
     bleu, meteor = evaluate_documentation(predictions, labels)
     assert bleu == pytest.approx(1, 0.01), f"BLEU Score is {bleu}"
@@ -34,7 +34,7 @@ def test_evaluation() -> None:
 def test_extra_token_in_prediction() -> None:
     # Test Case bleu score should be less due to brevity penalty and meteor is robust to small mistakes
     labels = ["this is a test"]
-    predictions = [["this is a test extra"]]
+    predictions = ["this is a test extra"]
     bleu, meteor = evaluate_documentation(predictions, labels)
     assert 0.6 <= bleu <= 0.8, f"BLEU Score is {bleu}"
     assert 0.8 <= meteor <= 1, f"METEOR Score is {meteor}"
@@ -43,7 +43,7 @@ def test_extra_token_in_prediction() -> None:
 def test_missing_token_in_prediction() -> None:
     # bleu score is less, meteor is higher
     labels = ["this is a test"]
-    predictions = [["this is a"]]
+    predictions = ["this is a"]
     bleu, meteor = evaluate_documentation(predictions, labels)
     assert 0.4 <= bleu <= 0.6, f"BLEU Score is {bleu}"
     assert 0.6 <= meteor <= 0.8, f"METEOR Score is {meteor}"
@@ -52,7 +52,7 @@ def test_missing_token_in_prediction() -> None:
 def test_completely_different_tokens() -> None:
     # both scores are less, as no common tokens
     labels = ["this is a test"]
-    predictions = [["completely different sentence"]]
+    predictions = ["completely different sentence"]
     bleu, meteor = evaluate_documentation(predictions, labels)
     assert bleu <= 0.1, f"BLEU Score is {bleu}"
     assert meteor <= 0.1, f"METEOR Score is {meteor}"
@@ -61,7 +61,7 @@ def test_completely_different_tokens() -> None:
 def test_partially_matching_tokens() -> None:
     # As ngrams arent matching because of extra token within, BLEU score is very less. Meteor gives a good score only.
     labels = ["this is a test"]
-    predictions = [["this is a different test"]]
+    predictions = ["this is a different test"]
     bleu, meteor = evaluate_documentation(predictions, labels)
     assert 0.25 <= bleu <= 0.4, f"BLEU Score is {bleu}"
     assert 0.8 <= meteor <= 0.95, f"METEOR Score is {meteor}"
