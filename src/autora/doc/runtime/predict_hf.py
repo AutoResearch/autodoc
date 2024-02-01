@@ -93,17 +93,19 @@ class Predictor:
         if torch.cuda.is_available():
             from transformers import BitsAndBytesConfig
 
-            model_path = quantized_models.get(model_path, model_path)
+            config = {"device_map": "auto"}
+            mapped_path = quantized_models.get(model_path, None)
+            if mapped_path:
+                # found an already quantized model, so no need to get a new quant config
+                return mapped_path, config
 
             # Load the model in 4bit quantization for faster inference on smaller GPUs
-            return model_path, {
-                "quantization_config": BitsAndBytesConfig(
+            config ["quantization_config"] = BitsAndBytesConfig(
                     load_in_4bit=True,
                     bnb_4bit_use_double_quant=True,
                     bnb_4bit_quant_type="nf4",
                     bnb_4bit_compute_dtype=torch.bfloat16,
-                ),
-                "device_map": "auto",
-            }
+                )
+            return model_path, config
         else:
             return model_path, {}
