@@ -25,7 +25,7 @@ def preprocess_code(code: str) -> str:
 
 class Predictor:
     def __init__(self, input_model_path: str):
-        model_path, config = self.get_config(input_model_path)
+        model_path, config = Predictor.get_config(input_model_path)
         if model_path != input_model_path:
             logger.info(f"Mapped requested model '{input_model_path}' to '{model_path}'")
 
@@ -89,7 +89,8 @@ class Predictor:
         tokens: Dict[str, List[List[int]]] = self.tokenizer(input)
         return tokens
 
-    def get_config(self, model_path: str) -> Tuple[str, Dict[str, str]]:
+    @staticmethod
+    def get_config(model_path: str) -> Tuple[str, Dict[str, str]]:
         if torch.cuda.is_available():
             from transformers import BitsAndBytesConfig
 
@@ -100,12 +101,12 @@ class Predictor:
                 return mapped_path, config
 
             # Load the model in 4bit quantization for faster inference on smaller GPUs
-            config ["quantization_config"] = BitsAndBytesConfig(
-                    load_in_4bit=True,
-                    bnb_4bit_use_double_quant=True,
-                    bnb_4bit_quant_type="nf4",
-                    bnb_4bit_compute_dtype=torch.bfloat16,
-                )
+            config["quantization_config"] = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_use_double_quant=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=torch.bfloat16,
+            )
             return model_path, config
         else:
             return model_path, {}
