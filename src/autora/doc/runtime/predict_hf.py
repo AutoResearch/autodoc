@@ -9,8 +9,7 @@ from autora.doc.runtime.prompts import CODE_PLACEHOLDER, LLAMA2_INST_CLOSE
 
 logger = logging.getLogger(__name__)
 
-# TODO: Redirect the quantized model to an 'autora' HF org
-quantized_models = {"meta-llama/Llama-2-7b-chat-hf": "carlosgjs/Llama-2-7b-chat-hf-4bit"}
+quantized_models = {"meta-llama/Llama-2-7b-chat-hf": "autora-doc/Llama-2-7b-chat-hf-nf4"}
 
 
 def preprocess_code(code: str) -> str:
