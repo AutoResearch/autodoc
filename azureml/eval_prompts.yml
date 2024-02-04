@@ -1,0 +1,32 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
+command: >
+  python -m autora.doc.pipelines.main eval-prompts
+  ${{inputs.data_dir}}/data.jsonl
+  ${{inputs.data_dir}}/all_prompt.json
+  --model-path ${{inputs.model_path}}
+  --param do_sample=${{inputs.do_sample}}
+  --param temperature=${{inputs.temperature}}
+  --param top_k=${{inputs.top_k}}
+  --param top_p=${{inputs.top_p}}
+code: ../src
+inputs:
+  data_dir:
+    type: uri_folder
+    path: azureml://datastores/workspaceblobstore/paths/data/sweetpea/
+  # Currently models are loading faster directly from HuggingFace vs Azure Blob Storage
+  # model_dir:
+  #   type: uri_folder
+  #   path: azureml://datastores/workspaceblobstore/paths/base_models
+  model_path: meta-llama/Llama-2-7b-chat-hf
+  temperature: 0.01
+  do_sample: 0
+  top_p: 0.95
+  top_k: 1
+# using a curated environment doesn't work because we need additional packages
+environment: # azureml://registries/azureml/environments/acpt-pytorch-2.0-cuda11.7/versions/21
+  image: mcr.microsoft.com/azureml/curated/acpt-pytorch-2.0-cuda11.7:21
+  conda_file: conda.yml
+display_name: autodoc_multi_prompts_prediction
+compute: azureml:v100cluster
+experiment_name: evaluation_multi_prompts
+description: Run code-to-documentation generation on data_file for each prompt in prompts_file
