@@ -187,7 +187,7 @@ def generate(
     predictions = pred.predict(prompt, [input], **param_dict)
     assert len(predictions) == 1, f"Expected only one output, got {len(predictions)}"
     logger.info(f"Writing output to {output}")
-    with open(output, "w") as f:
+    with open(output, "w", encoding="utf-8") as f:
         f.write(predictions[0])
 
 
