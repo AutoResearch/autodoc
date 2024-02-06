@@ -3,13 +3,11 @@ import logging
 from timeit import default_timer as timer
 from typing import Dict, List, Tuple
 
-import nltk
 import torch
 import typer
-from nltk.translate.bleu_score import SmoothingFunction, corpus_bleu
-from nltk.translate.meteor_score import single_meteor_score
 
 from autora.doc.classes.EvalResult import EvalResult
+from autora.doc.pipelines.metrics import eval_bleu_meteor
 from autora.doc.runtime.predict_hf import Predictor
 from autora.doc.runtime.prompts import PROMPTS, PromptIds
 from autora.doc.util import get_prompts_from_file
@@ -20,33 +18,6 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(module)s.%(funcName)s(): %(message)s",
 )
 logger = logging.getLogger(__name__)
-
-
-def evaluate_documentation(predictions: List[str], references: List[str]) -> Tuple[float, float]:
-    nltk.download("wordnet")
-
-    # Tokenize references
-    tokenized_references = [ref.split() for ref in references]
-    # Currently there is only 1 prediction for 1 reference, need to avg in future
-    tokenized_predictions = [pred.split() if pred else [] for pred in predictions]
-
-    # Calculate BLEU score with smoothing function
-    # SmoothingFunction().method1 is used to avoid zero scores for n-grams not found in the reference.
-    bleu = corpus_bleu(
-        # Wrap each reference list in another list
-        [[tokenized_ref] for tokenized_ref in tokenized_references],
-        tokenized_predictions,
-        smoothing_function=SmoothingFunction().method1,
-    )
-
-    # Calculate METEOR scores
-    meteor_scores = [
-        single_meteor_score(tokenized_ref, tokenized_pred)
-        for tokenized_ref, tokenized_pred in zip(tokenized_references, tokenized_predictions)
-    ]
-    meteor = sum(meteor_scores) / len(predictions) if predictions else 0
-
-    return (bleu, meteor)
 
 
 @app.command(help="Evaluate a model for code-to-documentation generation for all prompts in the prompts_file")
@@ -143,7 +114,7 @@ def eval_prompt(
     timer_start = timer()
     predictions = pred.predict(prompt, inputs, **param_dict)
     timer_end = timer()
-    bleu, meteor = evaluate_documentation(predictions, labels)
+    bleu, meteor = eval_bleu_meteor(predictions, labels)
     pred_time = timer_end - timer_start
     mlflow.log_metric("prediction_time/doc", pred_time / (len(inputs)))
     for i in range(len(inputs)):
