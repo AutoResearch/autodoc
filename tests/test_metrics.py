@@ -63,7 +63,7 @@ def test_semscore() -> None:
     assert semscore >= 0.6, f"SemScore is {semscore}"
 
     semscore = eval_semscore(labels, labels)
-    assert semscore == 1, f"SemScore is {semscore}"
+    assert semscore == pytest.approx(1.0), f"SemScore is {semscore}"
 
     semscore = eval_semscore([], [])
     assert semscore == 0, f"SemScore is {semscore}"

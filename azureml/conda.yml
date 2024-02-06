@@ -17,3 +17,4 @@ dependencies:
     - nltk
     # This works, while installing from pytorch and cuda from conda does not
     - torch==2.0.1
+    - sentence_transformers>=2.3.1
