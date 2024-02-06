@@ -2,7 +2,7 @@ $schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
 command: >
   python -m autora.doc.pipelines.main eval-prompts
   ${{inputs.data_dir}}/{{data_file}}
-  ${{inputs.data_dir}}/{{prompts_file}}
+  ${{inputs.prompts_dir}}/{{prompts_file}}
   --model-path ${{inputs.model_path}}
   --param do_sample=${{inputs.do_sample}}
   --param temperature=${{inputs.temperature}}
@@ -13,6 +13,9 @@ inputs:
   data_dir:
     type: uri_folder
     path: azureml://datastores/workspaceblobstore/paths/data/sweetpea/
+  prompts_dir:
+    type: uri_folder
+    path: azureml://datastores/workspaceblobstore/paths/data/autora/prompts/
   # Currently models are loading faster directly from HuggingFace vs Azure Blob Storage
   # model_dir:
   #   type: uri_folder
