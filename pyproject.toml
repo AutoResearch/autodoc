@@ -1,10 +1,8 @@
 [project]
 name = "autora-doc"
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 readme = "README.md"
-authors = [
-    { name = "Carlos Garcia Jurado Suarez", email = "carlosg@uw.edu" }
-]
+authors = [{ name = "Carlos Garcia Jurado Suarez", email = "carlosg@uw.edu" }]
 requires-python = ">=3.8"
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -20,7 +18,7 @@ dependencies = [
     "scipy",
     # This works, while installing from pytorch and cuda from conda does not",
     "torch==2.0.1",
-    "transformers>=4.35.2",
+    "transformers>=4.37.2",
     "nltk",
 ]
 
@@ -29,36 +27,26 @@ description = "Automatic documentation generator from AutoRA code"
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "pytest-cov", # Used to report total code coverage
-    "pre-commit", # Used to run checks before finalizing a git commit
-    "sphinx", # Used to automatically generate documentation
+    "pytest-cov",       # Used to report total code coverage
+    "pre-commit",       # Used to run checks before finalizing a git commit
+    "sphinx",           # Used to automatically generate documentation
     "sphinx-rtd-theme", # Used to render documentation
-    "sphinx-autoapi", # Used to automatically generate api documentation
-    "black", # Used for static linting of files
-    "mypy", # Used for static type checking of files
+    "sphinx-autoapi",   # Used to automatically generate api documentation
+    "black",            # Used for static linting of files
+    "mypy",             # Used for static type checking of files
     # if you add dependencies here while experimenting in a notebook and you
     # want that notebook to render in your documentation, please add the
     # dependencies to ./docs/requirements.txt as well.
-    "nbconvert", # Needed for pre-commit check to clear output from Python notebooks
-    "nbsphinx", # Used to integrate Python notebooks into Sphinx documentation
-    "ipython", # Also used in building notebooks into Sphinx
-    "matplotlib", # Used in sample notebook intro_notebook.ipynb
+    "nbconvert",   # Needed for pre-commit check to clear output from Python notebooks
+    "nbsphinx",    # Used to integrate Python notebooks into Sphinx documentation
+    "ipython",     # Also used in building notebooks into Sphinx
+    "matplotlib",  # Used in sample notebook intro_notebook.ipynb
     "ipykernel",
     "hf_transfer",
 ]
-train = [
-    "jsonlines",
-    "mlflow",
-]
-azure = [
-    "azureml-core",
-    "azureml-mlflow",
-]
-cuda = [
-    "bitsandbytes>=0.41.2.post2",
-    "accelerate>=0.24.1",
-    "xformers",
-]
+train = ["jsonlines", "mlflow"]
+azure = ["azureml-core", "azureml-mlflow"]
+cuda = ["bitsandbytes>=0.42.0", "accelerate>=0.24.1", "xformers"]
 
 [project.urls]
 Homepage = "https://github.com/AutoResearch/autodoc"
@@ -68,9 +56,7 @@ requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
-testpaths = [
-    "tests",
-]
+testpaths = ["tests"]
 
 [tool.black]
 line-length = 110
@@ -81,7 +67,7 @@ profile = "black"
 line_length = 110
 
 [tool.coverage.run]
-omit=["src/autora/doc/_version.py"]
+omit = ["src/autora/doc/_version.py"]
 
 [tool.hatch]
 

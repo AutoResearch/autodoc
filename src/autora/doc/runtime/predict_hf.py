@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Tuple
 
 import torch
 import transformers
@@ -8,6 +8,8 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from autora.doc.runtime.prompts import CODE_PLACEHOLDER, LLAMA2_INST_CLOSE
 
 logger = logging.getLogger(__name__)
+
+quantized_models = {"meta-llama/Llama-2-7b-chat-hf": "autora-doc/Llama-2-7b-chat-hf-nf4"}
 
 
 def preprocess_code(code: str) -> str:
@@ -21,10 +23,12 @@ def preprocess_code(code: str) -> str:
 
 
 class Predictor:
-    def __init__(self, model_path: str):
-        config = self.get_config()
+    def __init__(self, input_model_path: str):
+        model_path, config = Predictor.get_config(input_model_path)
+        if model_path != input_model_path:
+            logger.info(f"Mapped requested model '{input_model_path}' to '{model_path}'")
 
-        logger.info(f"Loading model from {model_path}")
+        logger.info(f"Loading model from {model_path} using config {config}")
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         self.model = AutoModelForCausalLM.from_pretrained(
             model_path,
@@ -84,19 +88,24 @@ class Predictor:
         tokens: Dict[str, List[List[int]]] = self.tokenizer(input)
         return tokens
 
-    def get_config(self) -> Dict[str, str]:
+    @staticmethod
+    def get_config(model_path: str) -> Tuple[str, Dict[str, str]]:
         if torch.cuda.is_available():
             from transformers import BitsAndBytesConfig
 
+            config = {"device_map": "auto"}
+            mapped_path = quantized_models.get(model_path, None)
+            if mapped_path:
+                # found an already quantized model, so no need to get a new quant config
+                return mapped_path, config
+
             # Load the model in 4bit quantization for faster inference on smaller GPUs
-            return {
-                "quantization_config": BitsAndBytesConfig(
-                    load_in_4bit=True,
-                    bnb_4bit_use_double_quant=True,
-                    bnb_4bit_quant_type="nf4",
-                    bnb_4bit_compute_dtype=torch.bfloat16,
-                ),
-                "device_map": "auto",
-            }
+            config["quantization_config"] = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_use_double_quant=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=torch.bfloat16,
+            )
+            return model_path, config
         else:
-            return {}
+            return model_path, {}
