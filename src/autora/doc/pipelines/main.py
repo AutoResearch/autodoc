@@ -145,14 +145,12 @@ def eval_prompt(
     timer_end = timer()
     bleu, meteor = evaluate_documentation(predictions, labels)
     pred_time = timer_end - timer_start
+    prompt_hash = hash(prompt)
     mlflow.log_metric("prediction_time/doc", pred_time / (len(inputs)))
     for i in range(len(inputs)):
-        mlflow.log_text(labels[i], f"label_{i}.txt")
-        mlflow.log_text(inputs[i], f"input_{i}.py")
-        for j in range(len(predictions[i])):
-            mlflow.log_text(predictions[i][j], f"prediction_{i}_{j}.txt")
-    mlflow.log_text("bleu_score is ", str(bleu))
-    mlflow.log_text("meteor_score is ", str(meteor))
+        mlflow.log_text(labels[i], f"{prompt_hash}_label_{i}.txt")
+        mlflow.log_text(inputs[i], f"{prompt_hash}_input_{i}.py")
+        mlflow.log_text(predictions[i], f"{prompt_hash}_prediction_{i}.txt")
 
     # flatten predictions for counting tokens
     predictions_flat = list(itertools.chain.from_iterable(predictions))
