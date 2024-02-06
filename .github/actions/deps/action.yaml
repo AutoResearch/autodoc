@@ -18,4 +18,4 @@ runs:
         python3 -m pip install --upgrade pip
     - name: Install project
       shell: sh
-      run: pip install ".[dev,train,cuda]"
+      run: pip install ".[dev,pipelines,cuda]"

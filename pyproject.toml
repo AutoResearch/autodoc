@@ -19,7 +19,6 @@ dependencies = [
     # This works, while installing from pytorch and cuda from conda does not",
     "torch==2.0.1",
     "transformers>=4.37.2",
-    "nltk",
 ]
 
 # On a mac, install optional dependencies with `pip install '.[dev]'` (include the single quotes)
@@ -44,7 +43,7 @@ dev = [
     "ipykernel",
     "hf_transfer",
 ]
-train = ["jsonlines", "mlflow"]
+pipelines = ["jsonlines", "mlflow", "nltk", "sentence-transformers>=2.3.1"]
 azure = ["azureml-core", "azureml-mlflow"]
 cuda = ["bitsandbytes>=0.42.0", "accelerate>=0.24.1", "xformers"]
 

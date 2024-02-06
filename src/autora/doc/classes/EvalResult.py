@@ -6,7 +6,8 @@ from typing import List, Optional
 class EvalResult:
     """Class for storing LLM evaluation results"""
 
-    prediction: List[str]
+    predictions: List[str]
     prompt: str
     bleu_score: Optional[float] = None
     meteor_score: Optional[float] = None
+    sem_score: Optional[float] = None

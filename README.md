@@ -31,14 +31,14 @@ Once you have created a new environment, you can install this project for local
 development using the following commands:
 
 ```
->> pip install -e .'[dev,train]'
+>> pip install -e .'[dev,pipelines]'
 >> pre-commit install
 >> conda install pandoc
 ```
 
 Notes:
 1) The single quotes around `'[dev]'` may not be required for your operating system.
-3) Look at `pyproject.toml` for other optional dependencies, e.g. you can do `pip install -e ."[dev,train,cuda]"` if you want to use CUDA.
+3) Look at `pyproject.toml` for other optional dependencies, e.g. you can do `pip install -e ."[dev,pipelines,cuda]"` if you want to use CUDA.
 2) `pre-commit install` will initialize pre-commit for this local repository, so
    that a set of tests will be run prior to completing a local commit. For more
    information, see the Python Project Template documentation on

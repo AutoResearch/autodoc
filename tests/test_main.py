@@ -11,9 +11,9 @@ TEST_HF_MODEL = "hf-internal-testing/tiny-random-FalconForCausalLM"
 
 def test_predict() -> None:
     data = Path(__file__).parent.joinpath("../data/sweetpea/data.jsonl").resolve()
-    outputs, _, _ = eval(str(data), TEST_HF_MODEL, PromptIds.SWEETP_1, [])
-    assert len(outputs) == 3, "Expected 3 outputs"
-    for output in outputs:
+    eval_result = eval(str(data), TEST_HF_MODEL, PromptIds.SWEETP_1, [])
+    assert len(eval_result.predictions) == 3, "Expected 3 outputs"
+    for output in eval_result.predictions:
         assert len(output) > 0, "Expected non-empty output"
 
 
@@ -42,5 +42,5 @@ def test_eval_prompts() -> None:
     results: List[EvalResult] = eval_prompts(str(data_file), TEST_HF_MODEL, str(prompts_file), [])
     assert len(results) == 3, "Expected 3 outputs"
     for result in results:
-        assert result.prediction is not None, "The prediction should not be None"
+        assert result.predictions is not None, "The prediction should not be None"
         assert result.prompt is not None, "The prompt should not be None"

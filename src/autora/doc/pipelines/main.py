@@ -7,7 +7,7 @@ import torch
 import typer
 
 from autora.doc.classes.EvalResult import EvalResult
-from autora.doc.pipelines.metrics import eval_bleu_meteor
+from autora.doc.pipelines.metrics import eval_bleu_meteor, eval_semscore
 from autora.doc.runtime.predict_hf import Predictor
 from autora.doc.runtime.prompts import PROMPTS, PromptIds
 from autora.doc.util import get_prompts_from_file
@@ -52,14 +52,8 @@ def eval_prompts(
         predictor = Predictor(model_path)
         for i in range(len(prompts_list)):
             logger.info(f"Starting to run model on prompt {i}")
-            prediction_with_scores = eval_prompt(data_file, predictor, prompts_list[i], param_dict)
+            eval_result = eval_prompt(data_file, predictor, prompts_list[i], param_dict)
             logger.info(f"Model run completed on prompt {i}: {prompts_list[i]}")
-            eval_result = EvalResult(
-                prediction_with_scores[0],
-                prompts_list[i],
-                prediction_with_scores[1],
-                prediction_with_scores[2],
-            )
             results_list.append(eval_result)
         return results_list
 
@@ -72,7 +66,7 @@ def eval(
     param: List[str] = typer.Option(
         [], help="Additional float parameters to pass to the model as name=float pairs"
     ),
-) -> Tuple[List[str], float, float]:
+) -> EvalResult:
     import mlflow
 
     mlflow.autolog()
@@ -104,9 +98,7 @@ def load_data(data_file: str) -> Tuple[List[str], List[str]]:
         return inputs, labels
 
 
-def eval_prompt(
-    data_file: str, pred: Predictor, prompt: str, param_dict: Dict[str, float]
-) -> Tuple[List[str], float, float]:
+def eval_prompt(data_file: str, pred: Predictor, prompt: str, param_dict: Dict[str, float]) -> EvalResult:
     import mlflow
 
     inputs, labels = load_data(data_file)
@@ -115,6 +107,7 @@ def eval_prompt(
     predictions = pred.predict(prompt, inputs, **param_dict)
     timer_end = timer()
     bleu, meteor = eval_bleu_meteor(predictions, labels)
+    semscore = eval_semscore(predictions, labels)
     pred_time = timer_end - timer_start
     mlflow.log_metric("prediction_time/doc", pred_time / (len(inputs)))
     for i in range(len(inputs)):
@@ -133,7 +126,8 @@ def eval_prompt(
     mlflow.log_metric("tokens/sec", total_tokens / pred_time)
     mlflow.log_metric("bleu_score", round(bleu, 5))
     mlflow.log_metric("meteor_score", round(meteor, 5))
-    return predictions, bleu, meteor
+    mlflow.log_metric("semscore", round(semscore, 5))
+    return EvalResult(predictions, prompt, bleu, meteor, semscore)
 
 
 @app.command()

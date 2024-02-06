@@ -3,7 +3,7 @@ from pathlib import Path
 import jsonlines
 import pytest
 
-from autora.doc.pipelines.metrics import eval_bleu_meteor
+from autora.doc.pipelines.metrics import eval_bleu_meteor, eval_semscore
 
 
 def test_evaluation() -> None:
@@ -53,3 +53,17 @@ def test_partially_matching_tokens() -> None:
     bleu, meteor = eval_bleu_meteor(predictions, labels)
     assert 0.25 <= bleu <= 0.4, f"BLEU Score is {bleu}"
     assert 0.8 <= meteor <= 0.95, f"METEOR Score is {meteor}"
+
+
+def test_semscore() -> None:
+    # Test Case: SemScore is close to 1
+    labels = ["this is really good"]
+    predictions = ["this is great"]
+    semscore = eval_semscore(predictions, labels)
+    assert semscore >= 0.6, f"SemScore is {semscore}"
+
+    semscore = eval_semscore(labels, labels)
+    assert semscore == 1, f"SemScore is {semscore}"
+
+    semscore = eval_semscore([], [])
+    assert semscore == 0, f"SemScore is {semscore}"
