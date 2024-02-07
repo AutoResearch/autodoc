@@ -44,6 +44,7 @@ dev = [
     "hf_transfer",
 ]
 pipelines = ["jsonlines", "mlflow", "nltk", "sentence-transformers>=2.3.1"]
+# NOTE: When updating dependencies, in particular cuda/azure ml, make sure to update the azureml/conda.yaml too
 azure = ["azureml-core", "azureml-mlflow"]
 cuda = ["bitsandbytes>=0.42.0", "accelerate>=0.24.1", "xformers"]
 

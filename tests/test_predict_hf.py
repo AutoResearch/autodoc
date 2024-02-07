@@ -36,6 +36,6 @@ def test_get_config_cuda(mock: mock.Mock) -> None:
 
 @mock.patch("torch.cuda.is_available", return_value=False)
 def test_get_config_nocuda(mock: mock.Mock) -> None:
-    model, config = Predictor.get_config(MODEL_WITH_QUANTIZED)
-    assert model == MODEL_WITH_QUANTIZED
+    model, config = Predictor.get_config(MODEL_NO_QUANTIZED)
+    assert model == MODEL_NO_QUANTIZED
     assert len(config) == 0

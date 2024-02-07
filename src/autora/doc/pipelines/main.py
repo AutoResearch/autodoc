@@ -12,12 +12,13 @@ from autora.doc.runtime.predict_hf import Predictor
 from autora.doc.runtime.prompts import PROMPTS, PromptIds
 from autora.doc.util import get_prompts_from_file
 
-app = typer.Typer()
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(module)s.%(funcName)s(): %(message)s",
 )
 logger = logging.getLogger(__name__)
+logger.info(f"Torch version: {torch.__version__} , Cuda available: {torch.cuda.is_available()}")
+app = typer.Typer()
 
 
 @app.command(help="Evaluate a model for code-to-documentation generation for all prompts in the prompts_file")
@@ -175,6 +176,4 @@ def import_data(code_file: str, text_file: str, output_file: str = "data.jsonl")
 
 
 if __name__ == "__main__":
-    logger.info(f"Torch version: {torch.__version__} , Cuda available: {torch.cuda.is_available()}")
-
     app()

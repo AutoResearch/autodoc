@@ -10,6 +10,7 @@ from autora.doc.runtime.prompts import CODE_PLACEHOLDER, LLAMA2_INST_CLOSE
 logger = logging.getLogger(__name__)
 
 quantized_models = {"meta-llama/Llama-2-7b-chat-hf": "autora-doc/Llama-2-7b-chat-hf-nf4"}
+non_quantized_models = {"meta-llama/Llama-2-7b-chat-hf": "autora-doc/Llama-2-7b-chat-hf"}
 
 
 def preprocess_code(code: str) -> str:
@@ -91,6 +92,7 @@ class Predictor:
     @staticmethod
     def get_config(model_path: str) -> Tuple[str, Dict[str, str]]:
         if torch.cuda.is_available():
+            logger.info("CUDA is available, attempting to load quantized model")
             from transformers import BitsAndBytesConfig
 
             config = {"device_map": "auto"}
@@ -108,4 +110,6 @@ class Predictor:
             )
             return model_path, config
         else:
-            return model_path, {}
+            logger.info("CUDA is not available, loading non-quantized model")
+            mapped_path = non_quantized_models.get(model_path, model_path)
+            return mapped_path, {}
