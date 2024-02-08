@@ -84,9 +84,9 @@ def eval(
         mlflow.log_param("prompt_id", prompt_id)
         mlflow.log_param("model_path", model_path)
         mlflow.log_param("data_file", data_file)
-    prompt = PROMPTS[prompt_id]
-    pred = Predictor(model_path)
-    return eval_prompt(data_file, pred, prompt, param_dict)
+        prompt = PROMPTS[prompt_id]
+        pred = Predictor(model_path)
+        return eval_prompt(data_file, pred, prompt, param_dict)
 
 
 def load_data(data_file: str) -> Tuple[List[str], List[str]]:
