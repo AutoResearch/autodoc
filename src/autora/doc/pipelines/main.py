@@ -14,7 +14,10 @@ from autora.doc.runtime.predict_hf import Predictor
 from autora.doc.runtime.prompts import PROMPTS, PromptIds
 from autora.doc.util import get_prompts_from_file
 
+# For inference
 DEFAULT_MODEL = "meta-llama/Llama-2-7b-chat-hf"
+# For training
+DEFAULT_BASE_MODEL = "autora-doc/Llama-2-7b-chat-hf"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -158,7 +161,9 @@ def import_model(model_name: str) -> None:
 def train(
     new_model_name: str = typer.Argument(..., help="File name for the fine-tuned model"),
     dataset: str = typer.Argument(..., help="Path to the jsonl file with training data"),
-    base_model: str = DEFAULT_MODEL,
+    base_model: str = typer.Option(
+        DEFAULT_BASE_MODEL, help="Path to the base Huggingface model to fine-tune"
+    ),
 ) -> None:
     ds = get_dataset(dataset)
     fine_tune(base_model, new_model_name, ds)
