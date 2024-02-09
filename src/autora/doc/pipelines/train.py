@@ -2,6 +2,7 @@ from typing import Dict, Iterable
 
 import torch
 from datasets import Dataset
+from numba import cuda
 from peft import LoraConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments
 from trl import SFTTrainer
@@ -25,6 +26,8 @@ def get_dataset(jsonl_path: str) -> Dataset:
 
 def fine_tune(base_model: str, new_model_name: str, dataset: Dataset) -> None:
     compute_dtype = getattr(torch, "float16")
+    device = cuda.get_current_device()
+    device.reset()
 
     # train using 4 bit quantization for lower GPU memory usage
     quant_config = BitsAndBytesConfig(
@@ -52,9 +55,10 @@ def fine_tune(base_model: str, new_model_name: str, dataset: Dataset) -> None:
         task_type="CAUSAL_LM",
     )
 
+    # All of these parameters are initial defaults and may need further tuning
     training_params = TrainingArguments(
         output_dir="./results",
-        num_train_epochs=1,
+        num_train_epochs=4,
         per_device_train_batch_size=4,
         gradient_accumulation_steps=1,
         optim="paged_adamw_32bit",
@@ -62,7 +66,7 @@ def fine_tune(base_model: str, new_model_name: str, dataset: Dataset) -> None:
         logging_steps=1,  # TODO: Increase once there's more data
         learning_rate=2e-4,
         weight_decay=0.001,
-        fp16=False,
+        fp16=True,
         bf16=False,
         max_grad_norm=0.3,
         max_steps=-1,
@@ -84,5 +88,6 @@ def fine_tune(base_model: str, new_model_name: str, dataset: Dataset) -> None:
         packing=False,
     )
 
+    trainer.train()
     trainer.model.save_pretrained(new_model_name)
     trainer.tokenizer.save_pretrained(new_model_name)
