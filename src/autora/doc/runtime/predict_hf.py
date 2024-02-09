@@ -1,26 +1,17 @@
 import logging
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, List, Tuple
 
 import torch
 import transformers
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+from autora.doc.pipelines.data import preprocess_code
 from autora.doc.runtime.prompts import CODE_PLACEHOLDER, LLAMA2_INST_CLOSE
 
 logger = logging.getLogger(__name__)
 
 quantized_models = {"meta-llama/Llama-2-7b-chat-hf": "autora-doc/Llama-2-7b-chat-hf-nf4"}
 non_quantized_models = {"meta-llama/Llama-2-7b-chat-hf": "autora-doc/Llama-2-7b-chat-hf"}
-
-
-def preprocess_code(code: str) -> str:
-    lines: Iterable[str] = code.splitlines()
-    skip_starts = {"import", "from", "#"}
-    lines = filter(
-        lambda line: not (any([line.strip().startswith(skip) for skip in skip_starts]) or line.strip() == ""),
-        lines,
-    )
-    return "\n".join(lines)
 
 
 class Predictor:

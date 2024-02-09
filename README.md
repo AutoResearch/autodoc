@@ -48,6 +48,17 @@ Notes:
    the Python Project Template documentation on
    [Sphinx and Python Notebooks](https://lincc-ppt.readthedocs.io/en/latest/practices/sphinx.html#python-notebooks)
 
+## Models
+
+The models are hosted in the [autora-doc](https://huggingface.co/autora-doc) Huggingface organization.
+
+## Usage
+
+Once the package is installed, documentation can be generated through the `autodoc` CLI tool:
+
+```sh
+autodoc generate <autora python file>
+```
 
 ## Running AzureML pipelines
 
