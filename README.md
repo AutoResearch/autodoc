@@ -84,16 +84,25 @@ az configure --defaults workspace=<aml workspace> group=<resource group> locatio
 
 ### Running jobs
 
-Prediction
+Inference
 ```sh
-az ml job create -f azureml/eval.yml  --set display_name="Test prediction job" --set environment_variables.HF_TOKEN=<your huggingface token> --web
+az ml job create -f azureml/generate.yml  --set display_name="Test inference job"
 ```
 
-Notes:
+Evaluation
+```sh
+az ml job create -f azureml/eval.yml  --set display_name="Test evaluation job"
+```
+
+Fine-Tuning (training)
+```sh
+az ml job create -f azureml/train.yml  --set display_name="Test training job"
+```
+
+Additional arguments:
 - `--name` will set the mlflow run id
 - `--display_name` becomes the name in the experiment dashboard
 - `--web` argument will pop-up a browser window for tracking the job.
-- The `HF_TOKEN` is required for gated repos, which need authentication
 
 
 ### Uploading data

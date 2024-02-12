@@ -25,20 +25,20 @@ def get_dataset(jsonl_path: str) -> Dataset:
 
 
 def fine_tune(base_model: str, new_model_name: str, dataset: Dataset) -> None:
-    compute_dtype = getattr(torch, "float16")
     device = cuda.get_current_device()
     device.reset()
+    torch.cuda.empty_cache()
 
     # train using 4 bit quantization for lower GPU memory usage
     quant_config = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=compute_dtype,
-        bnb_4bit_use_double_quant=False,
+        bnb_4bit_compute_dtype=torch.float16,
+        bnb_4bit_use_double_quant=True,
     )
 
     model = AutoModelForCausalLM.from_pretrained(
-        base_model, quantization_config=quant_config, device_map={"": 0}
+        base_model, quantization_config=quant_config, device_map="auto"
     )
     model.config.use_cache = False
     model.config.pretraining_tp = 1
@@ -49,8 +49,8 @@ def fine_tune(base_model: str, new_model_name: str, dataset: Dataset) -> None:
 
     peft_params = LoraConfig(
         lora_alpha=16,
-        lora_dropout=0.1,
-        r=64,
+        lora_dropout=0.05,
+        r=8,
         bias="none",
         task_type="CAUSAL_LM",
     )
@@ -59,7 +59,7 @@ def fine_tune(base_model: str, new_model_name: str, dataset: Dataset) -> None:
     training_params = TrainingArguments(
         output_dir="./results",
         num_train_epochs=4,
-        per_device_train_batch_size=4,
+        per_device_train_batch_size=1,  # TODO: Increase once there's more data
         gradient_accumulation_steps=1,
         optim="paged_adamw_32bit",
         save_steps=25,
@@ -82,7 +82,7 @@ def fine_tune(base_model: str, new_model_name: str, dataset: Dataset) -> None:
         train_dataset=dataset,
         peft_config=peft_params,
         dataset_text_field="text",
-        max_seq_length=None,
+        max_seq_length=1024,
         tokenizer=tokenizer,
         args=training_params,
         packing=False,

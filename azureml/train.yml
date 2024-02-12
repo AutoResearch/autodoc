@@ -11,6 +11,8 @@ inputs:
     path: azureml://datastores/workspaceblobstore/paths/data/autora
   model_path: autora-doc/Llama-2-7b-chat-hf-nf4
   new_model_name: autora-doc/Llama-2-7b-chat-hf-nf4-ft
+environment_variables:
+  PYTORCH_CUDA_ALLOC_CONF: max_split_size_mb:128
 # using a curated environment doesn't work because we need additional packages
 environment: # azureml://registries/azureml/environments/acpt-pytorch-2.0-cuda11.7/versions/21
   image: mcr.microsoft.com/azureml/curated/acpt-pytorch-2.0-cuda11.7:21
