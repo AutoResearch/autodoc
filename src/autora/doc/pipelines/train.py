@@ -2,12 +2,12 @@ from typing import Dict, Iterable
 
 import torch
 from datasets import Dataset
-from numba import cuda
 from peft import LoraConfig
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
 from trl import SFTTrainer
 
 from autora.doc.pipelines.data import load_data, preprocess_code
+from autora.doc.runtime.predict_hf import get_quantization_config
 from autora.doc.runtime.prompts import INSTR_SWEETP_1, SYS_GUIDES, PromptBuilder
 
 
@@ -25,20 +25,15 @@ def get_dataset(jsonl_path: str) -> Dataset:
 
 
 def fine_tune(base_model: str, new_model_name: str, dataset: Dataset) -> None:
-    device = cuda.get_current_device()
-    device.reset()
-    torch.cuda.empty_cache()
-
+    cuda_available = torch.cuda.is_available()
     # train using 4 bit quantization for lower GPU memory usage
-    quant_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.float16,
-        bnb_4bit_use_double_quant=True,
+    kwargs = (
+        {"device_map": "auto", "quantization_config": get_quantization_config()} if cuda_available else {}
     )
 
     model = AutoModelForCausalLM.from_pretrained(
-        base_model, quantization_config=quant_config, device_map="auto"
+        base_model,
+        *kwargs,
     )
     model.config.use_cache = False
     model.config.pretraining_tp = 1
@@ -61,13 +56,13 @@ def fine_tune(base_model: str, new_model_name: str, dataset: Dataset) -> None:
         num_train_epochs=4,
         per_device_train_batch_size=1,  # TODO: Increase once there's more data
         gradient_accumulation_steps=1,
-        optim="paged_adamw_32bit",
+        optim="paged_adamw_32bit" if cuda_available else "adamw_torch",
         save_steps=25,
         logging_steps=1,  # TODO: Increase once there's more data
         learning_rate=2e-4,
         weight_decay=0.001,
-        fp16=True,
-        bf16=False,
+        fp16=False,
+        bf16=cuda_available,
         max_grad_norm=0.3,
         max_steps=-1,
         warmup_ratio=0.03,
