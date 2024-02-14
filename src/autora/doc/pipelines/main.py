@@ -15,7 +15,7 @@ from autora.doc.runtime.prompts import PROMPTS, PromptIds
 from autora.doc.util import get_prompts_from_file
 
 # For inference
-DEFAULT_MODEL = "meta-llama/Llama-2-7b-chat-hf"
+DEFAULT_INFERENCE_MODEL = "meta-llama/Llama-2-7b-chat-hf"
 # For training
 DEFAULT_BASE_MODEL = "autora-doc/Llama-2-7b-chat-hf"
 
@@ -31,7 +31,7 @@ app = typer.Typer()
 @app.command(help="Evaluate a model for code-to-documentation generation for all prompts in the prompts_file")
 def eval_prompts(
     data_file: str = typer.Argument(..., help="JSONL Data file to evaluate on"),
-    model_path: str = typer.Option(DEFAULT_MODEL, help="Path to HF model"),
+    model_path: str = typer.Option(DEFAULT_INFERENCE_MODEL, help="Path to HF model"),
     prompts_file: str = typer.Argument(..., help="JSON file with a list of dictionary of prompts"),
     param: List[str] = typer.Option(
         [], help="Additional float parameters to pass to the model as name=float pairs"
@@ -69,7 +69,7 @@ def eval_prompts(
 @app.command(help="Evaluate model on a data file")
 def eval(
     data_file: str = typer.Argument(..., help="JSONL Data file to evaluate on"),
-    model_path: str = typer.Option(DEFAULT_MODEL, help="Path to HF model"),
+    model_path: str = typer.Option(DEFAULT_INFERENCE_MODEL, help="Path to HF model"),
     prompt_id: PromptIds = typer.Option(PromptIds.SWEETP_1, help="Instruction prompt ID"),
     param: List[str] = typer.Option(
         [], help="Additional float parameters to pass to the model as name=float pairs"
@@ -129,7 +129,7 @@ def eval_prompt(data_file: str, pred: Predictor, prompt: str, param_dict: Dict[s
 @app.command()
 def generate(
     python_file: str = typer.Argument(..., help="Python file to generate documentation for"),
-    model_path: str = typer.Option(DEFAULT_MODEL, help="Path to HF model"),
+    model_path: str = typer.Option(DEFAULT_INFERENCE_MODEL, help="Path to HF model"),
     output: str = typer.Option("output.txt", help="Output file"),
     prompt_id: PromptIds = typer.Option(PromptIds.SWEETP_1, help="Instruction prompt ID"),
     param: List[str] = typer.Option(
