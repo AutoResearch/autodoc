@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import List
 
 from autora.doc.classes.EvalResult import EvalResult
-from autora.doc.pipelines.main import eval, eval_prompts, generate, import_data
+from autora.doc.pipelines.main import eval, eval_prompts, generate, import_data, train
 from autora.doc.runtime.prompts import PromptIds
 
 # dummy HF model for testing
@@ -44,3 +44,9 @@ def test_eval_prompts() -> None:
     for result in results:
         assert result.predictions is not None, "The prediction should not be None"
         assert result.prompt is not None, "The prompt should not be None"
+
+
+def test_train(tmp_path: Path) -> None:
+    dataset = Path(__file__).parent.joinpath("../data/autora/data.jsonl").resolve()
+    train(str(tmp_path), str(dataset), TEST_HF_MODEL)
+    assert tmp_path.joinpath("./adapter_model.safetensors").exists(), "Expected model to be trained"

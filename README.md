@@ -48,6 +48,22 @@ Notes:
    the Python Project Template documentation on
    [Sphinx and Python Notebooks](https://lincc-ppt.readthedocs.io/en/latest/practices/sphinx.html#python-notebooks)
 
+## Models
+
+The models are hosted in the [autora-doc](https://huggingface.co/autora-doc) Huggingface organization.
+
+## Usage
+
+Once the package is installed, documentation can be generated through the `autodoc` CLI tool:
+
+```sh
+autodoc generate <autora python file>
+```
+
+## Running on Colab
+
+A notebook for testing different prompts can be run on Google Colab through [this link](https://colab.research.google.com/github/AutoResearch/autodoc/blob/main/notebooks/generate.ipynb). Be sure to change the Runtime type to a T4 GPU.
+
 
 ## Running AzureML pipelines
 
@@ -73,16 +89,25 @@ az configure --defaults workspace=<aml workspace> group=<resource group> locatio
 
 ### Running jobs
 
-Prediction
+Inference
 ```sh
-az ml job create -f azureml/eval.yml  --set display_name="Test prediction job" --set environment_variables.HF_TOKEN=<your huggingface token> --web
+az ml job create -f azureml/generate.yml  --set display_name="Test inference job"
 ```
 
-Notes:
+Evaluation
+```sh
+az ml job create -f azureml/eval.yml  --set display_name="Test evaluation job"
+```
+
+Fine-Tuning (training)
+```sh
+az ml job create -f azureml/train.yml  --set display_name="Test training job"
+```
+
+Additional arguments:
 - `--name` will set the mlflow run id
 - `--display_name` becomes the name in the experiment dashboard
 - `--web` argument will pop-up a browser window for tracking the job.
-- The `HF_TOKEN` is required for gated repos, which need authentication
 
 
 ### Uploading data

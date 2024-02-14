@@ -1,0 +1,30 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
+command: >
+  python -m autora.doc.pipelines.main train
+  ${{inputs.new_model_name}}
+  ${{inputs.data_dir}}/data.jsonl
+  --base-model ${{inputs.model_path}}
+code: ../src
+inputs:
+  data_dir:
+    type: uri_folder
+    path: azureml://datastores/workspaceblobstore/paths/data/autora
+  model_path: autora-doc/Llama-2-7b-chat-hf-nf4
+  new_model_name: autora-doc/Llama-2-7b-chat-hf-nf4-ft
+environment_variables:
+  PYTORCH_CUDA_ALLOC_CONF: max_split_size_mb:128
+# using a curated environment doesn't work because we need additional packages
+environment: # azureml://registries/azureml/environments/acpt-pytorch-2.0-cuda11.7/versions/21
+  image: mcr.microsoft.com/azureml/curated/acpt-pytorch-2.0-cuda11.7:21
+  # These didn't work
+  # image: mcr.microsoft.com/aifx/acpt/stable-ubuntu2004-cu117-py38-torch201:biweekly.202310.3
+  # image: mcr.microsoft.com/azureml/curated/acpt-pytorch-1.13-cuda11.7:latest
+  # image: mcr.microsoft.com/azureml/openmpi4.1.0-cuda11.0.3-cudnn8-ubuntu18.04
+  # image: mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04
+  # image: mcr.microsoft.com/azureml/openmpi4.1.0-cuda11.6-cudnn8-ubuntu20.04
+  # image: nvcr.io/nvidia/pytorch:23.10-py3
+  conda_file: conda.yml
+display_name: autodoc_train
+compute: azureml:v100cluster
+experiment_name: train
+description: |

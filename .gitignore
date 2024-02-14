@@ -148,3 +148,6 @@ _html/
 
 # mlflow output
 mlruns/
+
+#tensorflow output
+results/

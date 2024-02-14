@@ -1,26 +1,17 @@
 import logging
-from typing import Dict, Iterable, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import torch
 import transformers
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+from autora.doc.pipelines.data import preprocess_code
 from autora.doc.runtime.prompts import CODE_PLACEHOLDER, LLAMA2_INST_CLOSE
 
 logger = logging.getLogger(__name__)
 
 quantized_models = {"meta-llama/Llama-2-7b-chat-hf": "autora-doc/Llama-2-7b-chat-hf-nf4"}
 non_quantized_models = {"meta-llama/Llama-2-7b-chat-hf": "autora-doc/Llama-2-7b-chat-hf"}
-
-
-def preprocess_code(code: str) -> str:
-    lines: Iterable[str] = code.splitlines()
-    skip_starts = {"import", "from", "#"}
-    lines = filter(
-        lambda line: not (any([line.strip().startswith(skip) for skip in skip_starts]) or line.strip() == ""),
-        lines,
-    )
-    return "\n".join(lines)
 
 
 class Predictor:
@@ -93,7 +84,6 @@ class Predictor:
     def get_config(model_path: str) -> Tuple[str, Dict[str, str]]:
         if torch.cuda.is_available():
             logger.info("CUDA is available, attempting to load quantized model")
-            from transformers import BitsAndBytesConfig
 
             config = {"device_map": "auto"}
             mapped_path = quantized_models.get(model_path, None)
@@ -102,14 +92,20 @@ class Predictor:
                 return mapped_path, config
 
             # Load the model in 4bit quantization for faster inference on smaller GPUs
-            config["quantization_config"] = BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_use_double_quant=True,
-                bnb_4bit_quant_type="nf4",
-                bnb_4bit_compute_dtype=torch.bfloat16,
-            )
+            config["quantization_config"] = get_quantization_config()
             return model_path, config
         else:
             logger.info("CUDA is not available, loading non-quantized model")
             mapped_path = non_quantized_models.get(model_path, model_path)
             return mapped_path, {}
+
+
+def get_quantization_config() -> Any:
+    from transformers import BitsAndBytesConfig
+
+    return BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_use_double_quant=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.float16,
+    )
