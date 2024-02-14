@@ -33,7 +33,7 @@ def fine_tune(base_model: str, new_model_name: str, dataset: Dataset) -> None:
 
     model = AutoModelForCausalLM.from_pretrained(
         base_model,
-        *kwargs,
+        **kwargs,
     )
     model.config.use_cache = False
     model.config.pretraining_tp = 1
@@ -61,8 +61,8 @@ def fine_tune(base_model: str, new_model_name: str, dataset: Dataset) -> None:
         logging_steps=1,  # TODO: Increase once there's more data
         learning_rate=2e-4,
         weight_decay=0.001,
-        fp16=False,
-        bf16=cuda_available,
+        fp16=cuda_available,
+        bf16=False,
         max_grad_norm=0.3,
         max_steps=-1,
         warmup_ratio=0.03,
