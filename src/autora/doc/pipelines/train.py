@@ -26,14 +26,15 @@ def get_dataset(jsonl_path: str) -> Dataset:
 
 def fine_tune(base_model: str, new_model_name: str, dataset: Dataset) -> None:
     cuda_available = torch.cuda.is_available()
+    config = {}
+
     # train using 4 bit quantization for lower GPU memory usage
-    kwargs = (
-        {"device_map": "auto", "quantization_config": get_quantization_config()} if cuda_available else {}
-    )
+    if cuda_available:
+        config.update({"device_map": "auto", "quantization_config": get_quantization_config()})
 
     model = AutoModelForCausalLM.from_pretrained(
         base_model,
-        **kwargs,
+        **config,
     )
     model.config.use_cache = False
     model.config.pretraining_tp = 1

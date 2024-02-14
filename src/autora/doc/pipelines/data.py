@@ -6,7 +6,7 @@ def load_data(data_file: str) -> Tuple[List[str], List[str]]:
 
     with jsonlines.open(data_file) as reader:
         items = [item for item in reader]
-        inputs = [f"{item['instruction']}" for item in items]
+        inputs = [item["instruction"] for item in items]
         labels = [item["output"] for item in items]
         return inputs, labels
 
