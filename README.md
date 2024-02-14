@@ -60,6 +60,11 @@ Once the package is installed, documentation can be generated through the `autod
 autodoc generate <autora python file>
 ```
 
+## Running on Colab
+
+A notebook for testing different prompts can be run on Google Colab through [this link](https://colab.research.google.com/github/AutoResearch/autodoc/blob/main/notebooks/generate.ipynb). Be sure to change the Runtime type to a T4 GPU.
+
+
 ## Running AzureML pipelines
 
 This repo contains the evaluation and training pipelines for AutoDoc.
