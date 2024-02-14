@@ -53,7 +53,7 @@ def eval_prompts(
         predictor = Predictor(model_path)
         for i in range(len(prompts_list)):
             logger.info(f"Starting to run model on prompt {i}")
-            eval_result = eval_prompt(data_file, predictor, prompts_list[i], param_dict)
+            eval_result = eval_prompt(data_file, predictor, prompts_list[i], param_dict, i)
             logger.info(f"Model run completed on prompt {i}: {prompts_list[i]}")
             results_list.append(eval_result)
         return results_list
@@ -99,7 +99,9 @@ def load_data(data_file: str) -> Tuple[List[str], List[str]]:
         return inputs, labels
 
 
-def eval_prompt(data_file: str, pred: Predictor, prompt: str, param_dict: Dict[str, float]) -> EvalResult:
+def eval_prompt(
+    data_file: str, pred: Predictor, prompt: str, param_dict: Dict[str, float], prompt_index: int = 0
+) -> EvalResult:
     import mlflow
 
     inputs, labels = load_data(data_file)
@@ -110,22 +112,21 @@ def eval_prompt(data_file: str, pred: Predictor, prompt: str, param_dict: Dict[s
     bleu, meteor = eval_bleu_meteor(predictions, labels)
     semscore = eval_semscore(predictions, labels)
     pred_time = timer_end - timer_start
-    prompt_hash = hash(prompt)
     mlflow.log_metric("prediction_time/doc", pred_time / (len(inputs)))
     for i in range(len(inputs)):
-        mlflow.log_text(labels[i], f"{prompt_hash}_label_{i}.txt")
-        mlflow.log_text(inputs[i], f"{prompt_hash}_input_{i}.py")
-        mlflow.log_text(predictions[i], f"{prompt_hash}_prediction_{i}.txt")
+        mlflow.log_text(labels[i], f"prompt_{prompt_index}_label_{i}.txt")
+        mlflow.log_text(inputs[i], f"prompt_{prompt_index}_input_{i}.py")
+        mlflow.log_text(predictions[i], f"prompt_{prompt_index}_prediction_{i}.txt")
 
     # flatten predictions for counting tokens
     predictions_flat = list(itertools.chain.from_iterable(predictions))
     tokens = pred.tokenize(predictions_flat)["input_ids"]
     total_tokens = sum([len(token) for token in tokens])
-    mlflow.log_metric("total_tokens", total_tokens)
-    mlflow.log_metric("tokens/sec", total_tokens / pred_time)
-    mlflow.log_metric("bleu_score", round(bleu, 5))
-    mlflow.log_metric("meteor_score", round(meteor, 5))
-    mlflow.log_metric("semscore", round(semscore, 5))
+    mlflow.log_metric(f"prompt_{prompt_index}_total_tokens", total_tokens)
+    mlflow.log_metric(f"prompt_{prompt_index}_tokens/sec", total_tokens / pred_time)
+    mlflow.log_metric(f"prompt_{prompt_index}_bleu_score", round(bleu, 5))
+    mlflow.log_metric(f"prompt_{prompt_index}_meteor_score", round(meteor, 5))
+    mlflow.log_metric(f"prompt_{prompt_index}_semscore", round(semscore, 5))
     return EvalResult(predictions, prompt, bleu, meteor, semscore)
 
 
