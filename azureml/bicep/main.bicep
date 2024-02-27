@@ -4,6 +4,9 @@ param name string
 @description('Specifies the name of the environment.')
 param environment string
 
+@description('Specifies the region of the cluster.')
+param clusterLocation string
+
 @description('Specifies the location of the Azure Machine Learning workspace and dependent resources.')
 param location string = resourceGroup().location
 
@@ -81,7 +84,6 @@ resource workspaceName 'Microsoft.MachineLearningServices/workspaces@2023-10-01'
   location: location
   properties: {
     friendlyName: workspaceName_var
-
     storageAccount: storageAccount
     keyVault: keyVault
     applicationInsights: applicationInsights
@@ -94,7 +96,7 @@ resource workspaceName 'Microsoft.MachineLearningServices/workspaces@2023-10-01'
 resource clusterName 'Microsoft.MachineLearningServices/workspaces/computes@2021-01-01' = {
   parent: workspaceName
   name: clusterName_var
-  location: location
+  location: clusterLocation
   properties: {
     computeType: 'AmlCompute'
     properties: {

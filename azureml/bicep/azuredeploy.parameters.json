@@ -3,13 +3,16 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "name": {
-      "value": "testname"
+      "value": "autora"
     },
     "environment": {
-      "value": "testenv"
+      "value": "testenv4"
     },
     "location": {
       "value": "westus"
+    },
+    "clusterLocation": {
+      "value": "westus3"
     }
   }
 }
