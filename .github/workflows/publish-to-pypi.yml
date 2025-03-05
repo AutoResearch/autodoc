@@ -60,6 +60,7 @@ jobs:
     - name: Publish distribution 📦 to TestPyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
+        # TODO: Set up TEST_PYPI_API_TOKEN secret in GitHub Actions settings
         password: ${{ secrets.TEST_PYPI_API_TOKEN }}
         repository-url: https://test.pypi.org/legacy/
         verbose: true
@@ -68,6 +69,7 @@ jobs:
       id: check_pkg
       run: |
         # Install local wheel to get the version number
+        echo "=== Testing wheel file ==="
         pip install dist/autora_doc*.whl
         latest_version="$(python -c 'from autora import doc; print(doc.__version__)')";export latest_version
         echo "latest_version=$latest_version"  >> $GITHUB_OUTPUT
@@ -76,10 +78,10 @@ jobs:
         sleep 5
 
         python -m pip install --upgrade pip
-        echo "=== Testing wheel file ==="
+        echo "=== Testing Test PyPi installation ==="
         # Install wheel to get dependencies and check import
         python -m pip install --extra-index-url https://test.pypi.org/simple --upgrade --pre autora-doc==$latest_version
-        echo "=== Done testing wheel file ==="
+        echo "=== Done testing Test PyPi file ==="
         echo "=== Testing source tar file ==="
         # Install tar gz and check import
         python -m pip uninstall --yes autora-doc
