@@ -19,6 +19,7 @@ dependencies = [
     # This works, while installing from pytorch and cuda from conda does not",
     "torch==2.0.1",
     "transformers>=4.37.2",
+    "numpy<2.0",
 ]
 
 # On a mac, install optional dependencies with `pip install '.[dev]'` (include the single quotes)
